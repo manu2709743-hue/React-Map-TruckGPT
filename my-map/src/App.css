@@ -3,36 +3,100 @@
  * Global styles for the main application layout
  */
 
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
 /* ================================
-   Root Container
-   ================================ */
+    Navigation Styles
+    ================================ */
+.navigation {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.nav-brand h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ================================
+    Root Container
+    ================================ */
 #root {
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 1rem;
+  min-height: 100vh;
 }
 
 /* ================================
-   Main App Container
-   ================================ */
+    Main App Container
+    ================================ */
 .app {
   width: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 /* ================================
-   App Title
-   ================================ */
+    App Title (Hidden now with nav)
+    ================================ */
 .app__title {
-  text-align: center;
-  margin-bottom: 1rem;
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: inherit;
+  display: none;
 }
 
 /* ================================
-   Global Animations
-   ================================ */
+    Global Animations
+    ================================ */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -41,5 +105,422 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ================================
+    Truck List Styles
+    ================================ */
+.truck-list-container {
+  padding: 20px;
+}
+
+.list-controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.control-btn {
+  background: linear-gradient(135deg, #6c757d, #495057);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(108, 117, 125, 0.3);
+}
+
+.control-btn:hover {
+  background: linear-gradient(135deg, #5a6268, #343a40);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+}
+
+.load-btn {
+  background: linear-gradient(135deg, #17a2b8, #138496);
+}
+
+.load-btn:hover {
+  background: linear-gradient(135deg, #138496, #117a8b);
+}
+
+.start-all-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.start-all-btn:hover {
+  background: linear-gradient(135deg, #218838, #1aa085);
+}
+
+.truck-table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: white;
+}
+
+.truck-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.truck-table th,
+.truck-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.truck-table th {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.truck-table tbody tr:hover {
+  background-color: #f8f9ff;
+  transform: scale(1.005);
+  transition: all 0.2s ease;
+}
+
+.status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status.not-started {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status.on-route {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status.delivered {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.live-location {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #495057;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.action-btn {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.start-btn:hover {
+  background: linear-gradient(135deg, #218838, #1aa085);
+}
+
+.view-map-btn {
+  background: linear-gradient(135deg, #ffc107, #e0a800);
+  color: #212529;
+}
+
+.view-map-btn:hover {
+  background: linear-gradient(135deg, #e0a800, #d39e00);
+}
+
+/* ================================
+    Path Generator Styles
+    ================================ */
+.path-generator {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.path-generator h4 {
+  margin: 0 0 15px 0;
+  color: #007bff;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.generator-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: end;
+}
+
+.truck-select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  min-width: 150px;
+}
+
+.coord-inputs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.input-group input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: 100px;
+}
+
+.generate-btn {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3);
+}
+
+.generate-btn:hover {
+  background: linear-gradient(135deg, #c82333, #a02622);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+/* ================================
+    Truck Map Styles
+    ================================ */
+.truck-map-container {
+  position: relative;
+  padding: 20px;
+}
+
+.map-controls {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  max-width: calc(100vw - 60px);
+}
+
+.map-controls button {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 123, 255, 0.3);
+}
+
+.map-controls button:hover {
+  background: linear-gradient(135deg, #0056b3, #004085);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
+.select-route-btn {
+  background: linear-gradient(135deg, #ffc107, #e0a800) !important;
+  color: #212529 !important;
+}
+
+.select-route-btn:hover {
+  background: linear-gradient(135deg, #e0a800, #d39e00) !important;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
+}
+
+.confirm-btn:hover {
+  background: linear-gradient(135deg, #218838, #1aa085) !important;
+}
+
+.confirm-btn:disabled {
+  background: #6c757d !important;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, #dc3545, #c82333) !important;
+}
+
+.cancel-btn:hover {
+  background: linear-gradient(135deg, #c82333, #a02622) !important;
+}
+
+.movement-btn {
+  margin-left: auto;
+}
+
+.route-selection-info {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin: 10px;
+  text-align: center;
+  font-weight: 600;
+  color: #007bff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .truck-table th,
+  .truck-table td {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+
+  .truck-table th,
+  .truck-table td:nth-child(1) { /* Truck Name */
+    min-width: 80px;
+  }
+
+  .truck-table th,
+  .truck-table td:nth-child(2) { /* Driver */
+    min-width: 70px;
+  }
+
+  .truck-table th,
+  .truck-table td:nth-child(3) { /* Route */
+    min-width: 100px;
+  }
+
+  .truck-table th,
+  .truck-table td:nth-child(4) { /* Status */
+    min-width: 80px;
+  }
+
+  .truck-table th,
+  .truck-table td:nth-child(5) { /* Live Location */
+    min-width: 120px;
+    font-size: 0.75rem;
+  }
+
+  .truck-table th,
+  .truck-table td:nth-child(6) { /* Actions */
+    min-width: 120px;
+  }
+
+  .truck-list-container {
+    padding: 10px;
+  }
+
+  .map-controls {
+    top: 5px;
+    left: 5px;
+    padding: 8px;
+    max-width: calc(100vw - 10px);
+  }
+
+  .map-controls button {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    margin: 2px;
+  }
+
+  .route-selection-info {
+    position: absolute;
+    top: 80px;
+    left: 5px;
+    right: 5px;
+    font-size: 0.9rem;
+    z-index: 999;
+  }
+
+  .generator-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .coord-inputs {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .input-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .input-group input {
+    width: 80px;
   }
 }
