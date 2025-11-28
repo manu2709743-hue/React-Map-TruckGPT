@@ -305,7 +305,7 @@ export default function MapRoute() {
             borderRadius: 5,
           }}
         >
-          Load Car JSON
+          Load Truck JSON
         </button>
 
         <button
