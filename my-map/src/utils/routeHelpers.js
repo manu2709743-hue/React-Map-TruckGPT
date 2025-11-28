@@ -28,6 +28,7 @@ export function isCarNearRoute(routePoints, carPoint, thresholdMeters = ROUTE_PR
     return false;
   }
 
+  
   // Check if car is within threshold distance from any route point
   return routePoints.some((routePoint) => {
     const distance = distanceInMeters(
