@@ -1,0 +1,123 @@
+/**
+ * MapRoute Styles
+ * Styles for map-related components
+ */
+
+/* ================================
+   Container Styles
+   ================================ */
+.map-route-container {
+  padding: 15px;
+}
+
+/* ================================
+   Control Buttons Styles
+   ================================ */
+.control-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+/* Base button styles */
+.btn {
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+/* Show Route button - Green */
+.btn--show-route {
+  background-color: #28a745;
+}
+
+/* Load Car JSON button - Orange */
+.btn--load-car {
+  background-color: #fd7e14;
+}
+
+/* Start Car button - Purple */
+.btn--start-car {
+  background-color: #6f42c1;
+}
+
+/* Reset button - Red */
+.btn--reset {
+  background-color: #dc3545;
+}
+
+/* ================================
+   Path Status Styles
+   ================================ */
+.path-status {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* Correct path indicator - Green */
+.path-status--correct {
+  color: #28a745;
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+/* Incorrect path indicator - Red */
+.path-status--incorrect {
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+/* ================================
+   Map Container Styles
+   ================================ */
+.map-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ================================
+   Toll Message Styles
+   ================================ */
+.toll-messages-container {
+  margin-bottom: 10px;
+}
+
+.toll-message {
+  background: linear-gradient(135deg, #FFA500, #FF8C00);
+  color: white;
+  padding: 12px 15px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  animation: slideIn 0.3s ease-in-out;
+  box-shadow: 0 2px 6px rgba(255, 165, 0, 0.3);
+}
+
+/* Slide in animation for toll messages */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
