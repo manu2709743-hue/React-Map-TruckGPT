@@ -89,16 +89,19 @@ const TruckMap = () => {
     loadTolls();
   }, []);
 
-  // Initialize indices when routes loaded
+  // Initialize indices and positions when routes loaded
   useEffect(() => {
     if (Object.keys(truckRoutes).length > 0) {
       const initialIndices = {};
+      const initialPositions = {};
       trucks.forEach(truck => {
-        if (truckRoutes[truck.id]) {
+        if (truckRoutes[truck.id] && truckRoutes[truck.id].length > 0) {
           initialIndices[truck.id] = 0;
+          initialPositions[truck.id] = [truckRoutes[truck.id][0].lat, truckRoutes[truck.id][0].lng];
         }
       });
       setCurrentIndices(initialIndices);
+      setTruckPositions(initialPositions);
       setLoading(false);
     }
   }, [truckRoutes, trucks]);
@@ -149,15 +152,13 @@ const TruckMap = () => {
           });
           if (!isOnRoute) {
             toast.error(`${truck.name} is not in correct way!`);
-          } else {
-            toast.info(`${truck.name} is in correct way!`);
           }
         });
 
         setTruckPositions(newPositions);
         return newIndices;
       });
-    }, 900);
+    }, 3000);
   };
 
   // Stop movement
@@ -211,7 +212,7 @@ const TruckMap = () => {
       const endLat = parseFloat(selectedEnd[0]);
 
       // Generate intermediate points for a simple route
-      const numPoints = 10;
+      const numPoints = 20;
       const coords = [];
       for (let i = 0; i <= numPoints; i++) {
         const ratio = i / numPoints;
@@ -224,6 +225,12 @@ const TruckMap = () => {
       const newRoutes = { ...truckRoutes, [truckId]: coords };
       setTruckRoutes(newRoutes);
       setGeneratedRoute(coords);
+
+      // Set truck position to start of new route
+      setTruckPositions(prev => ({ ...prev, [truckId]: [coords[0].lat, coords[0].lng] }));
+
+      // Reset index for this truck
+      setCurrentIndices(prev => ({ ...prev, [truckId]: 0 }));
 
       // Download JSON
       const jsonStr = JSON.stringify({ [truckId]: coords }, null, 2);

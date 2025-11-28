@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 // Create context
 const TruckContext = createContext();
@@ -83,6 +84,13 @@ export const TruckProvider = ({ children }) => {
 
       if (newStatus !== currentStatus) {
         hasChanges = true;
+        if (newStatus === 'On Route') {
+          toast.info(`${truck.name} started for delivery`);
+        } else if (newStatus === 'Delivered') {
+          toast.success(`${truck.name} delivered`);
+          // Auto-stop movement when delivered
+          setIsMoving(false);
+        }
       }
       newStatuses[truck.id] = newStatus;
     });
