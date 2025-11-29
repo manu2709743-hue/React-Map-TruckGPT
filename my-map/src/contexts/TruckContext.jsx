@@ -11,21 +11,25 @@ export const TruckProvider = ({ children }) => {
   const [truckPositions, setTruckPositions] = useState({});
   const [truckStatuses, setTruckStatuses] = useState({});
   const [isMoving, setIsMoving] = useState(false);
+  const [tolls, setTolls] = useState([]);
 
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [trucksRes, routesRes] = await Promise.all([
+        const [trucksRes, routesRes, tollsRes] = await Promise.all([
           fetch('/data/trucks.json'),
           fetch('/data/truckRoutes.json'),
+          fetch('/data/tolls.json'),
         ]);
 
         const trucksData = await trucksRes.json();
         const routesData = await routesRes.json();
+        const tollsData = await tollsRes.json();
 
         setTrucks(trucksData);
         setTruckRoutes(routesData);
+        setTolls(tollsData);
 
         // Initialize positions and statuses
         const initialPositions = {};
@@ -111,6 +115,8 @@ export const TruckProvider = ({ children }) => {
     setTruckStatuses,
     isMoving,
     setIsMoving,
+    tolls,
+    setTolls,
   };
 
   return (

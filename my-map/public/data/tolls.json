@@ -1,0 +1,34 @@
+{
+  "T001": [
+    {
+      "id": 1,
+      "name": "Delhi Toll Plaza",
+      "latitude": 28.641017,
+      "longitude": 77.173872,
+      "radius": 100
+    },
+    {
+      "id": 2,
+      "name": "Noida Toll",
+      "latitude": 28.64196,
+      "longitude": 77.17437,
+      "radius": 100
+    },
+    {
+      "id": 3,
+      "name": "Greater Noida Toll",
+      "latitude": 28.639513,
+      "longitude": 77.208293,
+      "radius": 100
+    }
+  ],
+  "T002": [
+    {
+      "id": 4,
+      "name": "Jaipur Toll",
+      "latitude": 26.95,
+      "longitude": 75.69,
+      "radius": 100
+    }
+  ]
+}

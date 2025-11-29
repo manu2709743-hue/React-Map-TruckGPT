@@ -29,6 +29,13 @@ const highlightedTruckIcon = new L.Icon({
   iconAnchor: [25, 25],
 });
 
+// Toll plaza icon
+const tollIcon = new L.Icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/1234/1234567.png', // Replace with actual toll icon URL if needed
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
+});
+
 // Component to center map on specific truck
 function MapCenter({ center }) {
   const map = useMap();
@@ -61,9 +68,9 @@ const TruckMap = () => {
     truckStatuses,
     isMoving,
     setIsMoving,
+    tolls,
   } = useTruckContext();
   const [currentIndices, setCurrentIndices] = useState({});
-  const [tolls, setTolls] = useState([]);
   const [loading, setLoading] = useState(true);
   const intervalRef = useRef(null);
   const crossedTollsRef = useRef(new Set());
@@ -74,20 +81,6 @@ const TruckMap = () => {
   const [selectedEnd, setSelectedEnd] = useState(null);
   const [generatedRoute, setGeneratedRoute] = useState(null);
 
-  // Load tolls
-  useEffect(() => {
-    const loadTolls = async () => {
-      try {
-        const response = await fetch('/tolls.json');
-        const tollsData = await response.json();
-        setTolls(tollsData);
-      } catch (error) {
-        console.error('Error loading tolls:', error);
-      }
-    };
-
-    loadTolls();
-  }, []);
 
   // Initialize indices and positions when routes loaded
   useEffect(() => {
@@ -133,6 +126,11 @@ const TruckMap = () => {
           const position = [point.lat, point.lng];
           newPositions[truck.id] = position;
           newIndices[truck.id] = currentIndex;
+
+          // Check for toll exit at this point
+          if (point.toll) {
+            toast.info(`${truck.name} has exited ${point.toll}`);
+          }
 
           // Check toll crossings
           tolls.forEach(toll => {
@@ -399,6 +397,20 @@ const TruckMap = () => {
             </Marker>
           );
         })}
+
+        {/* Toll plaza markers */}
+        {Object.values(tolls).flat().map(toll => (
+          <Marker key={toll.id} position={[toll.latitude, toll.longitude]} icon={tollIcon}>
+            <Popup>
+              <div>
+                <h4>{toll.name}</h4>
+                <p><strong>Radius:</strong> {toll.radius} meters</p>
+                <p><strong>Coordinates:</strong> {toll.latitude.toFixed(4)}, {toll.longitude.toFixed(4)}</p>
+              </div>
+            </Popup>
+            <Tooltip>{toll.name} (Toll Plaza)</Tooltip>
+          </Marker>
+        ))}
       </MapContainer>
     </div>
   );
