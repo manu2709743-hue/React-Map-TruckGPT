@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTruckContext } from '../contexts/TruckContext';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 /**
  * TruckList Component
@@ -17,17 +18,12 @@ const TruckList = () => {
     isMoving,
     setIsMoving,
   } = useTruckContext();
-  const [loading, setLoading] = useState(true);
   const [selectedTruck, setSelectedTruck] = useState(null);
   const [startPoint, setStartPoint] = useState({ lat: '', lng: '' });
   const [endPoint, setEndPoint] = useState({ lat: '', lng: '' });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (trucks.length > 0) {
-      setLoading(false);
-    }
-  }, [trucks]);
+  const loading = trucks.length === 0;
 
   const handleViewOnMap = (truckId) => {
     navigate(`/map/${truckId}`);
@@ -60,13 +56,15 @@ const TruckList = () => {
     const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${API_KEY}&start=${startPoint.lng},${startPoint.lat}&end=${endPoint.lng},${endPoint.lat}`;
 
     try {
-      const response = await fetch(url);
-      const data = await response.json();
+      console.log('Calling ORS API for truck route:', url);
+      const res = await axios.get(url);
 
-      const coords = data.features[0].geometry.coordinates.map(c => ({
-        lat: c[1],
-        lng: c[0],
+      const coords = res.data.features[0].geometry.coordinates.map((c) => ({
+        lat: c[1], // lat
+        lng: c[0], // lng
       }));
+
+      console.log(`Generated real ORS route with ${coords.length} waypoints for ${selectedTruck}`);
 
       // Update routes
       const newRoutes = { ...truckRoutes, [selectedTruck]: coords };

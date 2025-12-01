@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { distanceInMeters } from '../utils/distance';
 
 // Create context
 const TruckContext = createContext();
@@ -10,8 +11,11 @@ export const TruckProvider = ({ children }) => {
   const [truckRoutes, setTruckRoutes] = useState({});
   const [truckPositions, setTruckPositions] = useState({});
   const [truckStatuses, setTruckStatuses] = useState({});
+  const [currentIndices, setCurrentIndices] = useState({});
   const [isMoving, setIsMoving] = useState(false);
   const [tolls, setTolls] = useState([]);
+  const intervalRef = useRef(null);
+  const crossedTollsRef = useRef(new Set());
 
   // Load initial data
   useEffect(() => {
@@ -31,25 +35,122 @@ export const TruckProvider = ({ children }) => {
         setTruckRoutes(routesData);
         setTolls(tollsData);
 
-        // Initialize positions and statuses
+        // Initialize positions, statuses, and indices
         const initialPositions = {};
         const initialStatuses = {};
+        const initialIndices = {};
         trucksData.forEach(truck => {
           const route = routesData[truck.id];
           if (route && route.length > 0) {
             initialPositions[truck.id] = [route[0].lat, route[0].lng];
             initialStatuses[truck.id] = 'Not Started';
+            initialIndices[truck.id] = 0;
           }
         });
 
         setTruckPositions(initialPositions);
         setTruckStatuses(initialStatuses);
+        setCurrentIndices(initialIndices);
       } catch (error) {
         console.error('Error loading data:', error);
       }
     };
 
     loadData();
+  }, []);
+
+  // Movement functions
+  const startMovement = useCallback(() => {
+    if (intervalRef.current) return; // Only check if interval is already running
+    setIsMoving(true);
+    crossedTollsRef.current.clear();
+
+    intervalRef.current = setInterval(() => {
+      setCurrentIndices(prevIndices => {
+        const newIndices = { ...prevIndices };
+        let allDelivered = true;
+
+        // Use functional update for positions to avoid stale closure
+        setTruckPositions(prevPositions => {
+          const newPositions = { ...prevPositions };
+
+          trucks.forEach(truck => {
+            const route = truckRoutes[truck.id];
+            if (!route || route.length === 0) return;
+
+            let currentIndex = newIndices[truck.id] || 0;
+
+            // Check if truck has reached the end
+            if (currentIndex >= route.length - 1) {
+              // Stay at the last position
+              newPositions[truck.id] = [route[route.length - 1].lat, route[route.length - 1].lng];
+              return;
+            }
+
+            // Move to next point
+            currentIndex++;
+            const point = route[currentIndex];
+            const position = [point.lat, point.lng];
+            newPositions[truck.id] = position;
+            newIndices[truck.id] = currentIndex;
+
+            // Check if not at end yet
+            if (currentIndex < route.length - 1) {
+              allDelivered = false;
+            }
+
+            // Check for toll crossings
+            const truckTolls = tolls[truck.id] || [];
+            truckTolls.forEach(toll => {
+              const tollKey = `${truck.id}-${toll.id}`;
+              if (!crossedTollsRef.current.has(tollKey)) {
+                const distance = distanceInMeters(position, [toll.latitude, toll.longitude]);
+                if (distance <= 30) {
+                  crossedTollsRef.current.add(tollKey);
+                  toast.success(`${truck.name} crossed ${toll.name}`);
+                }
+              }
+            });
+          });
+
+          return newPositions;
+        });
+
+        // Check if all trucks are delivered based on their status
+        const allTrucksDelivered = trucks.every(truck => truckStatuses[truck.id] === 'Delivered');
+        if (allTrucksDelivered) {
+          setIsMoving(false);
+        }
+
+        return newIndices;
+      });
+    }, 3000);
+  }, [trucks, truckRoutes, tolls, truckStatuses]);
+
+  const stopMovement = useCallback(() => {
+    setIsMoving(false);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  // Auto start/stop movement based on isMoving state
+  useEffect(() => {
+    if (isMoving && !intervalRef.current && Object.keys(truckRoutes).length > 0) {
+      startMovement();
+    } else if (!isMoving && intervalRef.current) {
+      stopMovement();
+    }
+  }, [isMoving, truckRoutes, startMovement, stopMovement]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, []);
 
   // Update status based on position
@@ -92,8 +193,6 @@ export const TruckProvider = ({ children }) => {
           toast.info(`${truck.name} started for delivery`);
         } else if (newStatus === 'Delivered') {
           toast.success(`${truck.name} delivered`);
-          // Auto-stop movement when delivered
-          setIsMoving(false);
         }
       }
       newStatuses[truck.id] = newStatus;
@@ -102,7 +201,7 @@ export const TruckProvider = ({ children }) => {
     if (hasChanges) {
       setTruckStatuses(newStatuses);
     }
-  }, [truckPositions, trucks, truckRoutes]);
+  }, [truckPositions, trucks, truckRoutes, truckStatuses]);
 
   const value = {
     trucks,
@@ -113,8 +212,12 @@ export const TruckProvider = ({ children }) => {
     setTruckPositions,
     truckStatuses,
     setTruckStatuses,
+    currentIndices,
+    setCurrentIndices,
     isMoving,
     setIsMoving,
+    startMovement,
+    stopMovement,
     tolls,
     setTolls,
   };

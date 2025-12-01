@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   MapContainer,
@@ -12,7 +12,7 @@ import {
 } from 'react-leaflet';
 import L from 'leaflet';
 import { toast } from 'react-toastify';
-import { distanceInMeters } from '../utils/distance';
+import axios from 'axios';
 import { useTruckContext } from '../contexts/TruckContext';
 
 // Truck icon
@@ -66,14 +66,12 @@ const TruckMap = () => {
     truckPositions,
     setTruckPositions,
     truckStatuses,
+    setCurrentIndices,
     isMoving,
-    setIsMoving,
+    startMovement,
+    stopMovement,
     tolls,
   } = useTruckContext();
-  const [currentIndices, setCurrentIndices] = useState({});
-  const [loading, setLoading] = useState(true);
-  const intervalRef = useRef(null);
-  const crossedTollsRef = useRef(new Set());
 
   // Route selection state
   const [isSelectingRoute, setIsSelectingRoute] = useState(false);
@@ -81,101 +79,9 @@ const TruckMap = () => {
   const [selectedEnd, setSelectedEnd] = useState(null);
   const [generatedRoute, setGeneratedRoute] = useState(null);
 
+  // Derive loading state from data availability
+  const loading = Object.keys(truckRoutes).length === 0;
 
-  // Initialize indices and positions when routes loaded
-  useEffect(() => {
-    if (Object.keys(truckRoutes).length > 0) {
-      const initialIndices = {};
-      const initialPositions = {};
-      trucks.forEach(truck => {
-        if (truckRoutes[truck.id] && truckRoutes[truck.id].length > 0) {
-          initialIndices[truck.id] = 0;
-          initialPositions[truck.id] = [truckRoutes[truck.id][0].lat, truckRoutes[truck.id][0].lng];
-        }
-      });
-      setCurrentIndices(initialIndices);
-      setTruckPositions(initialPositions);
-      setLoading(false);
-    }
-  }, [truckRoutes, trucks]);
-
-  // Start movement
-  const startMovement = () => {
-    if (isMoving) return;
-    setIsMoving(true);
-    crossedTollsRef.current.clear();
-
-    intervalRef.current = setInterval(() => {
-      setCurrentIndices(prev => {
-        const newIndices = { ...prev };
-        const newPositions = { ...truckPositions };
-
-        trucks.forEach(truck => {
-          const route = truckRoutes[truck.id];
-          if (!route) return;
-
-          let currentIndex = newIndices[truck.id] || 0;
-          if (currentIndex >= route.length - 1) {
-            // Loop back to start
-            currentIndex = 0;
-          } else {
-            currentIndex++;
-          }
-
-          const point = route[currentIndex];
-          const position = [point.lat, point.lng];
-          newPositions[truck.id] = position;
-          newIndices[truck.id] = currentIndex;
-
-          // Check for toll exit at this point
-          if (point.toll) {
-            toast.info(`${truck.name} has exited ${point.toll}`);
-          }
-
-          // Check toll crossings
-          tolls.forEach(toll => {
-            const tollKey = `${truck.id}-${toll.id}`;
-            if (!crossedTollsRef.current.has(tollKey)) {
-              const distance = distanceInMeters(position, [toll.latitude, toll.longitude]);
-              if (distance <= 30) {
-                crossedTollsRef.current.add(tollKey);
-                toast.success(`${truck.name} crossed ${toll.name}`);
-              }
-            }
-          });
-
-          // Check off-route
-          const isOnRoute = route.some(routePoint => {
-            return distanceInMeters(position, [routePoint.lat, routePoint.lng]) <= 30;
-          });
-          if (!isOnRoute) {
-            toast.error(`${truck.name} is not in correct way!`);
-          }
-        });
-
-        setTruckPositions(newPositions);
-        return newIndices;
-      });
-    }, 3000);
-  };
-
-  // Stop movement
-  const stopMovement = () => {
-    setIsMoving(false);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  };
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
 
   // Map click handler for route selection
   const handleMapClick = (e) => {
@@ -199,25 +105,23 @@ const TruckMap = () => {
       return;
     }
 
-    const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjExYWI5YjU0ODgwNzQ0YzY4OTI3YjUyYmFhOTRiNTBhIiwiaCI6Im11cm11cjY0In0=';
-    const url = `/api/openrouteservice/v2/directions/driving-car?api_key=${API_KEY}&start=${selectedStart[1]},${selectedStart[0]}&end=${selectedEnd[1]},${selectedEnd[0]}`;
+    const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6Ijk5MWY1N2VmMTIyYzRjZmViNjg5OWI1ZmRkZTI3YTFiIiwiaCI6Im11cm11cjY0In0=';
+    const url = `/api/openrouteservice/v2/directions/driving-car?start=${selectedStart[1]},${selectedStart[0]}&end=${selectedEnd[1]},${selectedEnd[0]}`;
 
     try {
-      // Mock route generation for development (straight line between start and end)
-      const startLng = parseFloat(selectedStart[1]);
-      const startLat = parseFloat(selectedStart[0]);
-      const endLng = parseFloat(selectedEnd[1]);
-      const endLat = parseFloat(selectedEnd[0]);
+      console.log('Calling ORS API:', url);
+      const res = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+        },
+      });
 
-      // Generate intermediate points for a simple route
-      const numPoints = 20;
-      const coords = [];
-      for (let i = 0; i <= numPoints; i++) {
-        const ratio = i / numPoints;
-        const lat = startLat + (endLat - startLat) * ratio;
-        const lng = startLng + (endLng - startLng) * ratio;
-        coords.push({ lat, lng });
-      }
+      const coords = res.data.features[0].geometry.coordinates.map((c) => ({
+        lat: c[1], // lat
+        lng: c[0], // lng
+      }));
+
+      console.log(`Generated real ORS route with ${coords.length} waypoints`);
 
       // Update routes
       const newRoutes = { ...truckRoutes, [truckId]: coords };
@@ -248,6 +152,9 @@ const TruckMap = () => {
       toast.success(`Route generated and downloaded for ${truckId}`);
     } catch (error) {
       console.error('Error generating route:', error);
+      if (error.response) {
+        console.error('API Response:', error.response.data);
+      }
       toast.error('Failed to generate route');
     }
   };
@@ -269,14 +176,6 @@ const TruckMap = () => {
     setGeneratedRoute(null);
   };
 
-  // Auto start movement when data loaded and isMoving is true
-  useEffect(() => {
-    if (!loading && trucks.length > 0 && isMoving && !intervalRef.current) {
-      startMovement();
-    } else if (!isMoving && intervalRef.current) {
-      stopMovement();
-    }
-  }, [loading, trucks, isMoving]);
 
   if (loading) {
     return <div className="loading">Loading map data...</div>;
