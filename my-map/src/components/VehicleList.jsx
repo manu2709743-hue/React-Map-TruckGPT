@@ -1,46 +1,46 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTruckContext } from '../contexts/TruckContext';
+import { useVehicleContext } from '../contexts/VehicleContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { Button, Table, StatusBadge } from './index';
 import { API_CONFIG, DATA_FILES } from '../constants';
-import '../styles/truck-list.css';
+import '../styles/vehicle-list.css';
 
 /**
- * TruckList Component
- * Displays a list of trucks with their details and navigation to map view
+ * VehicleList Component
+ * Displays a list of vehicles with their details and navigation to map view
  */
-const TruckList = () => {
+const VehicleList = () => {
   const {
-    trucks,
-    truckPositions,
-    truckStatuses,
-    truckRoutes,
-    setTruckRoutes,
+    vehicles,
+    vehiclePositions,
+    vehicleStatuses,
+    vehicleRoutes,
+    setVehicleRoutes,
     isMoving,
     setIsMoving,
-  } = useTruckContext();
-  const [selectedTruck, setSelectedTruck] = useState(null);
+  } = useVehicleContext();
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [startPoint, setStartPoint] = useState({ lat: '', lng: '' });
   const [endPoint, setEndPoint] = useState({ lat: '', lng: '' });
   const navigate = useNavigate();
 
-  const loading = trucks.length === 0;
+  const loading = vehicles.length === 0;
 
-  const handleViewOnMap = (truckId) => {
-    navigate(`/map/${truckId}`);
+  const handleViewOnMap = (vehicleId) => {
+    navigate(`/map/${vehicleId}`);
   };
 
-  const handleStartTruck = (truckId) => {
-    toast.info(`Starting truck ${truckId}`);
+  const handleStartVehicle = (vehicleId) => {
+    toast.info(`Starting vehicle ${vehicleId}`);
   };
 
   const handleLoadRoutes = async () => {
     try {
-      const response = await fetch(DATA_FILES.TRUCK_ROUTES);
+      const response = await fetch(DATA_FILES.VEHICLE_ROUTES);
       const data = await response.json();
-      setTruckRoutes(data);
+      setVehicleRoutes(data);
       toast.success('Routes loaded successfully');
     } catch (error) {
       console.error('Error loading routes:', error);
@@ -49,15 +49,15 @@ const TruckList = () => {
   };
 
   const generateRoute = async () => {
-    if (!selectedTruck || !startPoint.lat || !startPoint.lng || !endPoint.lat || !endPoint.lng) {
-      toast.error('Please select a truck and enter start/end coordinates');
+    if (!selectedVehicle || !startPoint.lat || !startPoint.lng || !endPoint.lat || !endPoint.lng) {
+      toast.error('Please select a vehicle and enter start/end coordinates');
       return;
     }
 
     const url = `${API_CONFIG.OPENROUTE_API}?api_key=${API_CONFIG.ROUTE_SERVICE_API_KEY}&start=${startPoint.lng},${startPoint.lat}&end=${endPoint.lng},${endPoint.lat}`;
 
     try {
-      console.log('Calling ORS API for truck route:', url);
+      console.log('Calling ORS API for vehicle route:', url);
       const res = await axios.get(url);
 
       const coords = res.data.features[0].geometry.coordinates.map((c) => ({
@@ -65,21 +65,21 @@ const TruckList = () => {
         lng: c[0],
       }));
 
-      console.log(`Generated real ORS route with ${coords.length} waypoints for ${selectedTruck}`);
+      console.log(`Generated real ORS route with ${coords.length} waypoints for ${selectedVehicle}`);
 
-      const newRoutes = { ...truckRoutes, [selectedTruck]: coords };
-      setTruckRoutes(newRoutes);
+      const newRoutes = { ...vehicleRoutes, [selectedVehicle]: coords };
+      setVehicleRoutes(newRoutes);
 
-      const jsonStr = JSON.stringify({ [selectedTruck]: coords }, null, 2);
+      const jsonStr = JSON.stringify({ [selectedVehicle]: coords }, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
       const urlBlob = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = urlBlob;
-      a.download = `route_${selectedTruck}.json`;
+      a.download = `route_${selectedVehicle}.json`;
       a.click();
       URL.revokeObjectURL(urlBlob);
 
-      toast.success(`Route generated for ${selectedTruck}`);
+      toast.success(`Route generated for ${selectedVehicle}`);
     } catch (error) {
       console.error('Error generating route:', error);
       toast.error('Failed to generate route');
@@ -88,20 +88,20 @@ const TruckList = () => {
 
   const handleStartAll = () => {
     setIsMoving(true);
-    toast.success('Starting all trucks');
+    toast.success('Starting all vehicles');
   };
 
   const handleStopAll = () => {
     setIsMoving(false);
-    toast.info('Stopping all trucks');
+    toast.info('Stopping all vehicles');
   };
 
   if (loading) {
-    return <div className="loading">Loading trucks...</div>;
+    return <div className="loading">Loading vehicles...</div>;
   }
 
   const columns = [
-    { key: 'name', label: 'Truck Name' },
+    { key: 'name', label: 'Vehicle Name' },
     { key: 'driver', label: 'Driver' },
     { key: 'route', label: 'Route' },
     { key: 'status', label: 'Status' },
@@ -110,7 +110,7 @@ const TruckList = () => {
   ];
 
   return (
-    <div className="truck-list-container">
+    <div className="vehicle-list-container">
       <div className="list-controls">
         <Button variant="secondary" onClick={handleLoadRoutes}>
           Load Routes
@@ -125,19 +125,19 @@ const TruckList = () => {
 
       <Table
         columns={columns}
-        data={trucks}
-        renderRow={(truck) => (
+        data={vehicles}
+        renderRow={(vehicle) => (
           <>
-            <td>{truck.name}</td>
-            <td>{truck.driver}</td>
-            <td>{truck.from} → {truck.to}</td>
+            <td>{vehicle.name}</td>
+            <td>{vehicle.driver}</td>
+            <td>{vehicle.from} → {vehicle.to}</td>
             <td>
-              <StatusBadge status={truckStatuses[truck.id] || 'Not Started'} />
+              <StatusBadge status={vehicleStatuses[vehicle.id] || 'Not Started'} />
             </td>
             <td>
-              {truckPositions[truck.id] ? (
+              {vehiclePositions[vehicle.id] ? (
                 <span className="live-location">
-                  {truckPositions[truck.id][0].toFixed(4)}, {truckPositions[truck.id][1].toFixed(4)}
+                  {vehiclePositions[vehicle.id][0].toFixed(4)}, {vehiclePositions[vehicle.id][1].toFixed(4)}
                 </span>
               ) : (
                 'N/A'
@@ -147,14 +147,14 @@ const TruckList = () => {
               <Button 
                 size="sm"
                 variant="success"
-                onClick={() => handleStartTruck(truck.id)}
+                onClick={() => handleStartVehicle(vehicle.id)}
               >
                 Start
               </Button>
               <Button 
                 size="sm"
                 variant="warning"
-                onClick={() => handleViewOnMap(truck.id)}
+                onClick={() => handleViewOnMap(vehicle.id)}
               >
                 View on Map
               </Button>
@@ -166,4 +166,4 @@ const TruckList = () => {
   );
 };
 
-export default TruckList;
+export default VehicleList;

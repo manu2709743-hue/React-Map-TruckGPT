@@ -14,21 +14,21 @@ import L from 'leaflet';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { Button } from './index';
-import { useTruckContext } from '../contexts/TruckContext';
+import { useVehicleContext } from '../contexts/VehicleContext';
 import { API_CONFIG, MAP_CONFIG, DISTANCE_CONFIG } from '../constants';
-import '../styles/truck-map.css';
+import '../styles/vehicle-map.css';
 
-// Truck icon
-const truckIcon = new L.Icon({
+// Vehicle icon
+const vehicleIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202921.png',
-  iconSize: MAP_CONFIG.TRUCK_MARKER_SIZE,
+  iconSize: MAP_CONFIG.VEHICLE_MARKER_SIZE,
   iconAnchor: [20, 20],
 });
 
-// Highlighted truck icon (larger)
-const highlightedTruckIcon = new L.Icon({
+// Highlighted vehicle icon (larger)
+const highlightedVehicleIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202921.png',
-  iconSize: MAP_CONFIG.HIGHLIGHTED_TRUCK_MARKER_SIZE,
+  iconSize: MAP_CONFIG.HIGHLIGHTED_VEHICLE_MARKER_SIZE,
   iconAnchor: [25, 25],
 });
 
@@ -39,7 +39,7 @@ const tollIcon = new L.Icon({
   iconAnchor: [15, 15],
 });
 
-// Component to center map on specific truck
+// Component to center map on specific vehicle
 function MapCenter({ center }) {
   const map = useMap();
   useEffect(() => {
@@ -60,31 +60,31 @@ function MapClickHandler({ onMapClick }) {
   return null;
 }
 
-const TruckMap = () => {
-  const { truckId } = useParams();
+const VehicleMap = () => {
+  const { vehicleId } = useParams();
   const {
-    trucks,
-    truckRoutes,
-    setTruckRoutes,
-    truckPositions,
-    setTruckPositions,
-    truckStatuses,
+    vehicles,
+    vehicleRoutes,
+    setVehicleRoutes,
+    vehiclePositions,
+    setVehiclePositions,
+    vehicleStatuses,
     setCurrentIndices,
     isMoving,
     startMovement,
     stopMovement,
     tolls,
-  } = useTruckContext();
+  } = useVehicleContext();
 
   const [isSelectingRoute, setIsSelectingRoute] = useState(false);
   const [selectedStart, setSelectedStart] = useState(null);
   const [selectedEnd, setSelectedEnd] = useState(null);
   const [generatedRoute, setGeneratedRoute] = useState(null);
 
-  const loading = Object.keys(truckRoutes).length === 0;
+  const loading = Object.keys(vehicleRoutes).length === 0;
 
   const handleMapClick = (e) => {
-    if (!isSelectingRoute || !truckId) return;
+    if (!isSelectingRoute || !vehicleId) return;
 
     const point = [e.latlng.lat, e.latlng.lng];
 
@@ -98,7 +98,7 @@ const TruckMap = () => {
   };
 
   const confirmRoute = async () => {
-    if (!selectedStart || !selectedEnd || !truckId) {
+    if (!selectedStart || !selectedEnd || !vehicleId) {
       toast.error('Please select both start and end points');
       return;
     }
@@ -120,19 +120,19 @@ const TruckMap = () => {
 
       console.log(`Generated real ORS route with ${coords.length} waypoints`);
 
-      const newRoutes = { ...truckRoutes, [truckId]: coords };
-      setTruckRoutes(newRoutes);
+      const newRoutes = { ...vehicleRoutes, [vehicleId]: coords };
+      setVehicleRoutes(newRoutes);
       setGeneratedRoute(coords);
 
-      setTruckPositions(prev => ({ ...prev, [truckId]: [coords[0].lat, coords[0].lng] }));
-      setCurrentIndices(prev => ({ ...prev, [truckId]: 0 }));
+      setVehiclePositions(prev => ({ ...prev, [vehicleId]: [coords[0].lat, coords[0].lng] }));
+      setCurrentIndices(prev => ({ ...prev, [vehicleId]: 0 }));
 
-      const jsonStr = JSON.stringify({ [truckId]: coords }, null, 2);
+      const jsonStr = JSON.stringify({ [vehicleId]: coords }, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
       const urlBlob = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = urlBlob;
-      a.download = `route_${truckId}.json`;
+      a.download = `route_${vehicleId}.json`;
       a.click();
       URL.revokeObjectURL(urlBlob);
 
@@ -140,7 +140,7 @@ const TruckMap = () => {
       setSelectedEnd(null);
       setIsSelectingRoute(false);
 
-      toast.success(`Route generated and downloaded for ${truckId}`);
+      toast.success(`Route generated and downloaded for ${vehicleId}`);
     } catch (error) {
       console.error('Error generating route:', error);
       if (error.response) {
@@ -170,14 +170,14 @@ const TruckMap = () => {
   }
 
   let mapCenter = MAP_CONFIG.DEFAULT_CENTER;
-  if (truckId && truckPositions[truckId]) {
-    mapCenter = truckPositions[truckId];
+  if (vehicleId && vehiclePositions[vehicleId]) {
+    mapCenter = vehiclePositions[vehicleId];
   }
 
   return (
-    <div className="truck-map-container">
+    <div className="vehicle-map-container">
       <div className="map-controls">
-        {truckId && (
+        {vehicleId && (
           <>
             {!isSelectingRoute ? (
               <Button 
@@ -185,7 +185,7 @@ const TruckMap = () => {
                 className="select-route-btn"
                 onClick={startRouteSelection}
               >
-                Select Route for {truckId}
+                Select Route for {vehicleId}
               </Button>
             ) : (
               <>
@@ -233,17 +233,17 @@ const TruckMap = () => {
         style={{ height: '600px', width: '100%' }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <MapCenter center={truckId ? truckPositions[truckId] : null} />
+        <MapCenter center={vehicleId ? vehiclePositions[vehicleId] : null} />
         <MapClickHandler onMapClick={handleMapClick} />
 
-        {Object.entries(truckRoutes).map(([id, route]) => {
-          if (isSelectingRoute && id === truckId) return null;
+        {Object.entries(vehicleRoutes).map(([id, route]) => {
+          if (isSelectingRoute && id === vehicleId) return null;
           return (
             <Polyline
               key={id}
               positions={route.map(p => [p.lat, p.lng])}
-              color={id === truckId ? 'red' : 'blue'}
-              weight={id === truckId ? 4 : 2}
+              color={id === vehicleId ? 'red' : 'blue'}
+              weight={id === vehicleId ? 4 : 2}
             />
           );
         })}
@@ -270,28 +270,28 @@ const TruckMap = () => {
           </Marker>
         )}
 
-        {trucks.map(truck => {
-          const position = truckPositions[truck.id];
-          const status = truckStatuses[truck.id] || 'Not Started';
+        {vehicles.map(vehicle => {
+          const position = vehiclePositions[vehicle.id];
+          const status = vehicleStatuses[vehicle.id] || 'Not Started';
           if (!position) return null;
 
           return (
             <Marker
-              key={truck.id}
+              key={vehicle.id}
               position={position}
-              icon={truck.id === truckId ? highlightedTruckIcon : truckIcon}
+              icon={vehicle.id === vehicleId ? highlightedVehicleIcon : vehicleIcon}
             >
               <Popup>
                 <div>
-                  <h4>{truck.name}</h4>
-                  <p><strong>Driver:</strong> {truck.driver}</p>
-                  <p><strong>Route:</strong> {truck.from} → {truck.to}</p>
+                  <h4>{vehicle.name}</h4>
+                  <p><strong>Driver:</strong> {vehicle.driver}</p>
+                  <p><strong>Route:</strong> {vehicle.from} → {vehicle.to}</p>
                   <p><strong>Status:</strong> {status}</p>
                   <p><strong>Position:</strong> {position[0].toFixed(4)}, {position[1].toFixed(4)}</p>
                 </div>
               </Popup>
               <Tooltip permanent={false}>
-                {truck.name} - {truck.driver} ({status})
+                {vehicle.name} - {vehicle.driver} ({status})
               </Tooltip>
             </Marker>
           );
@@ -314,4 +314,4 @@ const TruckMap = () => {
   );
 };
 
-export default TruckMap;
+export default VehicleMap;

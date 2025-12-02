@@ -1,8 +1,8 @@
 /* ================================
-    Truck Map Component Styles
+    Vehicle Map Component Styles
     ================================ */
 
-.truck-map-container {
+.vehicle-map-container {
   position: relative;
   padding: 20px;
 }
@@ -36,7 +36,7 @@
 }
 
 @media (max-width: 768px) {
-  .truck-map-container {
+  .vehicle-map-container {
     padding: 10px;
   }
 

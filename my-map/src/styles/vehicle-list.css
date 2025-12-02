@@ -1,8 +1,8 @@
 /* ================================
-    Truck List Component Styles
+    Vehicle List Component Styles
     ================================ */
 
-.truck-list-container {
+.vehicle-list-container {
   padding: 20px;
 }
 
@@ -37,7 +37,7 @@
   align-items: end;
 }
 
-.truck-select {
+.vehicle-select {
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -87,7 +87,7 @@
 }
 
 @media (max-width: 768px) {
-  .truck-list-container {
+  .vehicle-list-container {
     padding: 10px;
   }
 

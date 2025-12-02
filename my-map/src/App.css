@@ -109,9 +109,9 @@ body {
 }
 
 /* ================================
-     Truck List Styles
+     Vehicle List Styles
      ================================ */
-.truck-list-container {
+.vehicle-list-container {
   padding: 20px;
 }
 
@@ -197,40 +197,6 @@ body {
 
 .start-all-btn:hover {
   background: linear-gradient(135deg, #218838, #1aa085);
-}
-
-.truck-table-wrapper {
-  overflow-x: hidden;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  background: white;
-}
-
-.truck-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.truck-table th,
-.truck-table td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.truck-table th {
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  color: white;
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.truck-table tbody tr:hover {
-  background-color: #f8f9ff;
-  transform: scale(1.005);
-  transition: all 0.2s ease;
 }
 
 .status {
@@ -329,7 +295,7 @@ body {
   align-items: end;
 }
 
-.truck-select {
+.vehicle-select {
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -390,9 +356,9 @@ body {
 }
 
 /* ================================
-    Truck Map Styles
+    Vehicle Map Styles
     ================================ */
-.truck-map-container {
+.vehicle-map-container {
   position: relative;
   padding: 20px;
 }
@@ -688,46 +654,44 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .truck-table th,
-  .truck-table td,
   .vehicle-table th,
   .vehicle-table td {
     padding: 6px 8px;
     font-size: 0.8rem;
   }
 
-  .truck-table th,
-  .truck-table td:nth-child(1) { /* Truck Name */
+  .vehicle-table th,
+  .vehicle-table td:nth-child(1) { /* Vehicle Name */
     min-width: 80px;
   }
 
-  .truck-table th,
-  .truck-table td:nth-child(2) { /* Driver */
+  .vehicle-table th,
+  .vehicle-table td:nth-child(2) { /* Driver */
     min-width: 70px;
   }
 
-  .truck-table th,
-  .truck-table td:nth-child(3) { /* Route */
+  .vehicle-table th,
+  .vehicle-table td:nth-child(3) { /* Route */
     min-width: 100px;
   }
 
-  .truck-table th,
-  .truck-table td:nth-child(4) { /* Status */
+  .vehicle-table th,
+  .vehicle-table td:nth-child(4) { /* Status */
     min-width: 80px;
   }
 
-  .truck-table th,
-  .truck-table td:nth-child(5) { /* Live Location */
+  .vehicle-table th,
+  .vehicle-table td:nth-child(5) { /* Live Location */
     min-width: 120px;
     font-size: 0.75rem;
   }
 
-  .truck-table th,
-  .truck-table td:nth-child(6) { /* Actions */
+  .vehicle-table th,
+  .vehicle-table td:nth-child(6) { /* Actions */
     min-width: 120px;
   }
 
-  .truck-list-container,
+  .vehicle-list-container,
   .vehicle-details-container {
     padding: 10px;
   }

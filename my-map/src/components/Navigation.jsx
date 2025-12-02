@@ -4,7 +4,7 @@ import '../styles/navigation.css';
 
 /**
  * Navigation Component
- * Provides navigation between truck list and map pages
+ * Provides navigation between vehicle list and map pages
  */
 const Navigation = () => {
   const location = useLocation();
@@ -13,14 +13,14 @@ const Navigation = () => {
     <nav className="navigation">
       <div className="nav-container">
         <div className="nav-brand">
-          <h2>Truck Tracker</h2>
+          <h2>Vehicle Tracker</h2>
         </div>
         <div className="nav-links">
           <Link
             to="/trucks"
             className={`nav-link ${location.pathname === '/trucks' ? 'active' : ''}`}
           >
-            Truck List
+            Vehicle List
           </Link>
           <Link
             to="/vehicles"

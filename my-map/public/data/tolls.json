@@ -1,5 +1,5 @@
 {
-  "T001": [
+  "V001": [
     {
       "id": 1,
       "name": "Delhi Toll Plaza",
@@ -8,7 +8,7 @@
       "radius": 100
     }
   ],
-  "T002": [
+  "V002": [
     {
       "id": 4,
       "name": "Jaipur Toll",

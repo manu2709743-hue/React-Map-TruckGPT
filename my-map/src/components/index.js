@@ -7,8 +7,8 @@
 export { default as Navigation } from './Navigation';
 
 // Page Components
-export { default as TruckList } from './TruckList';
-export { default as TruckMap } from './TruckMap';
+export { default as VehicleList } from './VehicleList';
+export { default as VehicleMap } from './VehicleMap';
 export { default as VehicleDetails } from './VehicleDetails';
 export { default as DriverDetailsModal } from './DriverDetailsModal';
 

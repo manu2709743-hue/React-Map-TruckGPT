@@ -22,15 +22,15 @@ export const API_ENDPOINTS = {
  * Data File Paths
  */
 export const DATA_FILES = {
-  TRUCKS: '/data/trucks.json',
-  TRUCK_ROUTES: '/data/truckRoutes.json',
+  VEHICLES: '/data/vehicles.json',
+  VEHICLE_ROUTES: '/data/vehicleRoutes.json',
   TOLLS: '/data/tolls.json',
 };
 
 /**
  * Route Status Constants
  */
-export const TRUCK_STATUS = {
+export const VEHICLE_STATUS = {
   NOT_STARTED: 'Not Started',
   ON_ROUTE: 'On Route',
   DELIVERED: 'Delivered',
@@ -51,8 +51,8 @@ export const STATUS_BADGE_CLASS = {
 export const MAP_CONFIG = {
   DEFAULT_CENTER: [20.5937, 78.9629], // India center
   DEFAULT_ZOOM: 6,
-  TRUCK_MARKER_SIZE: [40, 40],
-  HIGHLIGHTED_TRUCK_MARKER_SIZE: [50, 50],
+  VEHICLE_MARKER_SIZE: [40, 40],
+  HIGHLIGHTED_VEHICLE_MARKER_SIZE: [50, 50],
   TOLL_MARKER_SIZE: [30, 30],
 };
 
@@ -75,9 +75,9 @@ export const UI_CONFIG = {
 };
 
 /**
- * Truck Movement Configuration
+ * Vehicle Movement Configuration
  */
-export const TRUCK_MOVEMENT = {
+export const VEHICLE_MOVEMENT = {
   UPDATE_INTERVAL: 3000, // milliseconds
   POSITION_UPDATE_STEP: 1, // Update every nth route point
 };
