@@ -6,7 +6,13 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import './App.css';
+
+// Import global styles
+import './styles/globals.css';
+import './styles/buttons.css';
+import './styles/table.css';
+import './styles/modal.css';
+import './styles/status-badge.css';
 
 // Import components
 import { Navigation, TruckList, TruckMap, VehicleDetails } from './components';
@@ -25,15 +31,17 @@ function App() {
     <TruckProvider>
       <Router>
         <Navigation />
-        <div className="app">
-          <Routes>
-            <Route path="/trucks" element={<TruckList />} />
-            <Route path="/vehicles" element={<VehicleDetails />} />
-            <Route path="/map" element={<TruckMap />} />
-            <Route path="/map/:truckId" element={<TruckMap />} />
-            <Route path="/" element={<TruckList />} />
-          </Routes>
-          <ToastContainer />
+        <div className="page-container">
+          <div className="page-content">
+            <Routes>
+              <Route path="/trucks" element={<TruckList />} />
+              <Route path="/vehicles" element={<VehicleDetails />} />
+              <Route path="/map" element={<TruckMap />} />
+              <Route path="/map/:truckId" element={<TruckMap />} />
+              <Route path="/" element={<TruckList />} />
+            </Routes>
+            <ToastContainer />
+          </div>
         </div>
       </Router>
     </TruckProvider>

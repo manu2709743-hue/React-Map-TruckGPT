@@ -13,26 +13,29 @@ import {
 import L from 'leaflet';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { Button } from './index';
 import { useTruckContext } from '../contexts/TruckContext';
+import { API_CONFIG, MAP_CONFIG, DISTANCE_CONFIG } from '../constants';
+import '../styles/truck-map.css';
 
 // Truck icon
 const truckIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202921.png',
-  iconSize: [40, 40],
+  iconSize: MAP_CONFIG.TRUCK_MARKER_SIZE,
   iconAnchor: [20, 20],
 });
 
 // Highlighted truck icon (larger)
 const highlightedTruckIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202921.png',
-  iconSize: [50, 50],
+  iconSize: MAP_CONFIG.HIGHLIGHTED_TRUCK_MARKER_SIZE,
   iconAnchor: [25, 25],
 });
 
 // Toll plaza icon
 const tollIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/1234/1234567.png', // Replace with actual toll icon URL if needed
-  iconSize: [30, 30],
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/1234/1234567.png',
+  iconSize: MAP_CONFIG.TOLL_MARKER_SIZE,
   iconAnchor: [15, 15],
 });
 
@@ -41,7 +44,7 @@ function MapCenter({ center }) {
   const map = useMap();
   useEffect(() => {
     if (center) {
-      map.setView(center, 13);
+      map.setView(center, MAP_CONFIG.DEFAULT_ZOOM);
     }
   }, [center, map]);
   return null;
@@ -73,17 +76,13 @@ const TruckMap = () => {
     tolls,
   } = useTruckContext();
 
-  // Route selection state
   const [isSelectingRoute, setIsSelectingRoute] = useState(false);
   const [selectedStart, setSelectedStart] = useState(null);
   const [selectedEnd, setSelectedEnd] = useState(null);
   const [generatedRoute, setGeneratedRoute] = useState(null);
 
-  // Derive loading state from data availability
   const loading = Object.keys(truckRoutes).length === 0;
 
-
-  // Map click handler for route selection
   const handleMapClick = (e) => {
     if (!isSelectingRoute || !truckId) return;
 
@@ -98,43 +97,36 @@ const TruckMap = () => {
     }
   };
 
-  // Generate route from selected points
   const confirmRoute = async () => {
     if (!selectedStart || !selectedEnd || !truckId) {
       toast.error('Please select both start and end points');
       return;
     }
 
-    const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6Ijk5MWY1N2VmMTIyYzRjZmViNjg5OWI1ZmRkZTI3YTFiIiwiaCI6Im11cm11cjY0In0=';
     const url = `/api/openrouteservice/v2/directions/driving-car?start=${selectedStart[1]},${selectedStart[0]}&end=${selectedEnd[1]},${selectedEnd[0]}`;
 
     try {
       console.log('Calling ORS API:', url);
       const res = await axios.get(url, {
         headers: {
-          Authorization: `Bearer ${API_KEY}`,
+          Authorization: `Bearer ${API_CONFIG.ROUTE_SERVICE_API_KEY}`,
         },
       });
 
       const coords = res.data.features[0].geometry.coordinates.map((c) => ({
-        lat: c[1], // lat
-        lng: c[0], // lng
+        lat: c[1],
+        lng: c[0],
       }));
 
       console.log(`Generated real ORS route with ${coords.length} waypoints`);
 
-      // Update routes
       const newRoutes = { ...truckRoutes, [truckId]: coords };
       setTruckRoutes(newRoutes);
       setGeneratedRoute(coords);
 
-      // Set truck position to start of new route
       setTruckPositions(prev => ({ ...prev, [truckId]: [coords[0].lat, coords[0].lng] }));
-
-      // Reset index for this truck
       setCurrentIndices(prev => ({ ...prev, [truckId]: 0 }));
 
-      // Download JSON
       const jsonStr = JSON.stringify({ [truckId]: coords }, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
       const urlBlob = URL.createObjectURL(blob);
@@ -144,7 +136,6 @@ const TruckMap = () => {
       a.click();
       URL.revokeObjectURL(urlBlob);
 
-      // Reset selection
       setSelectedStart(null);
       setSelectedEnd(null);
       setIsSelectingRoute(false);
@@ -159,7 +150,6 @@ const TruckMap = () => {
     }
   };
 
-  // Start route selection
   const startRouteSelection = () => {
     setIsSelectingRoute(true);
     setSelectedStart(null);
@@ -168,7 +158,6 @@ const TruckMap = () => {
     toast.info('Click on map to select start point');
   };
 
-  // Cancel route selection
   const cancelRouteSelection = () => {
     setIsSelectingRoute(false);
     setSelectedStart(null);
@@ -176,13 +165,11 @@ const TruckMap = () => {
     setGeneratedRoute(null);
   };
 
-
   if (loading) {
     return <div className="loading">Loading map data...</div>;
   }
 
-  // Determine map center
-  let mapCenter = [20.5937, 78.9629]; // India center
+  let mapCenter = MAP_CONFIG.DEFAULT_CENTER;
   if (truckId && truckPositions[truckId]) {
     mapCenter = truckPositions[truckId];
   }
@@ -193,24 +180,41 @@ const TruckMap = () => {
         {truckId && (
           <>
             {!isSelectingRoute ? (
-              <button className="control-btn select-route-btn" onClick={startRouteSelection}>
+              <Button 
+                variant="warning"
+                className="select-route-btn"
+                onClick={startRouteSelection}
+              >
                 Select Route for {truckId}
-              </button>
+              </Button>
             ) : (
               <>
-                <button className="control-btn confirm-btn" onClick={confirmRoute} disabled={!selectedStart || !selectedEnd}>
+                <Button 
+                  variant="success"
+                  className="confirm-btn"
+                  onClick={confirmRoute} 
+                  disabled={!selectedStart || !selectedEnd}
+                >
                   Confirm Route
-                </button>
-                <button className="control-btn cancel-btn" onClick={cancelRouteSelection}>
+                </Button>
+                <Button 
+                  variant="danger"
+                  className="cancel-btn"
+                  onClick={cancelRouteSelection}
+                >
                   Cancel
-                </button>
+                </Button>
               </>
             )}
           </>
         )}
-        <button className="control-btn movement-btn" onClick={isMoving ? stopMovement : startMovement}>
+        <Button 
+          variant="primary"
+          className="movement-btn"
+          onClick={isMoving ? stopMovement : startMovement}
+        >
           {isMoving ? 'Stop Movement' : 'Start Movement'}
-        </button>
+        </Button>
       </div>
 
       {isSelectingRoute && (
@@ -225,16 +229,15 @@ const TruckMap = () => {
 
       <MapContainer
         center={mapCenter}
-        zoom={6}
+        zoom={MAP_CONFIG.DEFAULT_ZOOM}
         style={{ height: '600px', width: '100%' }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <MapCenter center={truckId ? truckPositions[truckId] : null} />
         <MapClickHandler onMapClick={handleMapClick} />
 
-        {/* Route polylines - hide existing route when selecting new one */}
         {Object.entries(truckRoutes).map(([id, route]) => {
-          if (isSelectingRoute && id === truckId) return null; // Hide current route when selecting
+          if (isSelectingRoute && id === truckId) return null;
           return (
             <Polyline
               key={id}
@@ -245,7 +248,6 @@ const TruckMap = () => {
           );
         })}
 
-        {/* Generated route preview */}
         {generatedRoute && (
           <Polyline
             positions={generatedRoute.map(p => [p.lat, p.lng])}
@@ -255,7 +257,6 @@ const TruckMap = () => {
           />
         )}
 
-        {/* Selection markers */}
         {selectedStart && (
           <Marker position={selectedStart}>
             <Popup>Start Point</Popup>
@@ -269,7 +270,6 @@ const TruckMap = () => {
           </Marker>
         )}
 
-        {/* Truck markers */}
         {trucks.map(truck => {
           const position = truckPositions[truck.id];
           const status = truckStatuses[truck.id] || 'Not Started';
@@ -297,7 +297,6 @@ const TruckMap = () => {
           );
         })}
 
-        {/* Toll plaza markers */}
         {Object.values(tolls).flat().map(toll => (
           <Marker key={toll.id} position={[toll.latitude, toll.longitude]} icon={tollIcon}>
             <Popup>

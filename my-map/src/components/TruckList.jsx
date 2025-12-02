@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTruckContext } from '../contexts/TruckContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { Button, Table, StatusBadge } from './index';
+import { API_CONFIG, DATA_FILES } from '../constants';
+import '../styles/truck-list.css';
 
 /**
  * TruckList Component
@@ -30,13 +33,12 @@ const TruckList = () => {
   };
 
   const handleStartTruck = (truckId) => {
-    // For individual start, we can implement later
     toast.info(`Starting truck ${truckId}`);
   };
 
   const handleLoadRoutes = async () => {
     try {
-      const response = await fetch('/data/truckRoutes.json');
+      const response = await fetch(DATA_FILES.TRUCK_ROUTES);
       const data = await response.json();
       setTruckRoutes(data);
       toast.success('Routes loaded successfully');
@@ -52,25 +54,22 @@ const TruckList = () => {
       return;
     }
 
-    const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjExYWI5YjU0ODgwNzQ0YzY4OTI3YjUyYmFhOTRiNTBhIiwiaCI6Im11cm11cjY0In0=';
-    const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${API_KEY}&start=${startPoint.lng},${startPoint.lat}&end=${endPoint.lng},${endPoint.lat}`;
+    const url = `${API_CONFIG.OPENROUTE_API}?api_key=${API_CONFIG.ROUTE_SERVICE_API_KEY}&start=${startPoint.lng},${startPoint.lat}&end=${endPoint.lng},${endPoint.lat}`;
 
     try {
       console.log('Calling ORS API for truck route:', url);
       const res = await axios.get(url);
 
       const coords = res.data.features[0].geometry.coordinates.map((c) => ({
-        lat: c[1], // lat
-        lng: c[0], // lng
+        lat: c[1],
+        lng: c[0],
       }));
 
       console.log(`Generated real ORS route with ${coords.length} waypoints for ${selectedTruck}`);
 
-      // Update routes
       const newRoutes = { ...truckRoutes, [selectedTruck]: coords };
       setTruckRoutes(newRoutes);
 
-      // Download JSON
       const jsonStr = JSON.stringify({ [selectedTruck]: coords }, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
       const urlBlob = URL.createObjectURL(blob);
@@ -101,76 +100,68 @@ const TruckList = () => {
     return <div className="loading">Loading trucks...</div>;
   }
 
+  const columns = [
+    { key: 'name', label: 'Truck Name' },
+    { key: 'driver', label: 'Driver' },
+    { key: 'route', label: 'Route' },
+    { key: 'status', label: 'Status' },
+    { key: 'location', label: 'Live Location' },
+    { key: 'actions', label: 'Actions' },
+  ];
+
   return (
     <div className="truck-list-container">
       <div className="list-controls">
-        <button className="control-btn load-btn" onClick={handleLoadRoutes}>
+        <Button variant="secondary" onClick={handleLoadRoutes}>
           Load Routes
-        </button>
-        <button
-          className="control-btn start-all-btn"
+        </Button>
+        <Button 
+          variant="success" 
           onClick={isMoving ? handleStopAll : handleStartAll}
         >
           {isMoving ? 'Stop All' : 'Start All'}
-        </button>
+        </Button>
       </div>
 
-      <div className="truck-table-wrapper">
-        <table className="truck-table">
-          <thead>
-            <tr>
-              <th>Truck Name</th>
-              <th>Driver</th>
-              <th>Route</th>
-              <th>Status</th>
-              <th>Live Location</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trucks.map((truck) => {
-              const position = truckPositions[truck.id];
-              const status = truckStatuses[truck.id] || 'Not Started';
-
-              return (
-                <tr key={truck.id}>
-                  <td>{truck.name}</td>
-                  <td>{truck.driver}</td>
-                  <td>{truck.from} → {truck.to}</td>
-                  <td>
-                    <span className={`status ${status.toLowerCase().replace(' ', '-')}`}>
-                      {status}
-                    </span>
-                  </td>
-                  <td>
-                    {position ? (
-                      <span className="live-location">
-                        {position[0].toFixed(4)}, {position[1].toFixed(4)}
-                      </span>
-                    ) : (
-                      'N/A'
-                    )}
-                  </td>
-                  <td className="actions-cell">
-                    <button
-                      className="action-btn start-btn"
-                      onClick={() => handleStartTruck(truck.id)}
-                    >
-                      Start
-                    </button>
-                    <button
-                      className="action-btn view-map-btn"
-                      onClick={() => handleViewOnMap(truck.id)}
-                    >
-                      View on Map
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <Table
+        columns={columns}
+        data={trucks}
+        renderRow={(truck) => (
+          <>
+            <td>{truck.name}</td>
+            <td>{truck.driver}</td>
+            <td>{truck.from} → {truck.to}</td>
+            <td>
+              <StatusBadge status={truckStatuses[truck.id] || 'Not Started'} />
+            </td>
+            <td>
+              {truckPositions[truck.id] ? (
+                <span className="live-location">
+                  {truckPositions[truck.id][0].toFixed(4)}, {truckPositions[truck.id][1].toFixed(4)}
+                </span>
+              ) : (
+                'N/A'
+              )}
+            </td>
+            <td className="actions-cell">
+              <Button 
+                size="sm"
+                variant="success"
+                onClick={() => handleStartTruck(truck.id)}
+              >
+                Start
+              </Button>
+              <Button 
+                size="sm"
+                variant="warning"
+                onClick={() => handleViewOnMap(truck.id)}
+              >
+                View on Map
+              </Button>
+            </td>
+          </>
+        )}
+      />
     </div>
   );
 };

@@ -1,0 +1,118 @@
+/* ================================
+    Truck List Component Styles
+    ================================ */
+
+.truck-list-container {
+  padding: 20px;
+}
+
+.list-controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Path Generator Styles */
+.path-generator {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.path-generator h4 {
+  margin: 0 0 15px 0;
+  color: #007bff;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.generator-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: end;
+}
+
+.truck-select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  min-width: 150px;
+}
+
+.coord-inputs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.input-group input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: 100px;
+}
+
+/* Live Location Display */
+.live-location {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #495057;
+}
+
+/* Actions Cell */
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .truck-list-container {
+    padding: 10px;
+  }
+
+  .list-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .generator-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .coord-inputs {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .input-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .input-group input {
+    width: 80px;
+  }
+}
