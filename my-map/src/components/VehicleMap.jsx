@@ -17,17 +17,18 @@ import { Button } from './index';
 import { useVehicleContext } from '../contexts/VehicleContext';
 import { API_CONFIG, MAP_CONFIG, DISTANCE_CONFIG } from '../constants';
 import '../styles/vehicle-map.css';
+import deliveryTruck from '../assets/delivery-truck.png';
 
 // Vehicle icon
 const vehicleIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202921.png',
+  iconUrl: deliveryTruck,
   iconSize: MAP_CONFIG.VEHICLE_MARKER_SIZE,
   iconAnchor: [20, 20],
 });
 
 // Highlighted vehicle icon (larger)
 const highlightedVehicleIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202921.png',
+  iconUrl: deliveryTruck,
   iconSize: MAP_CONFIG.HIGHLIGHTED_VEHICLE_MARKER_SIZE,
   iconAnchor: [25, 25],
 });
@@ -103,15 +104,13 @@ const VehicleMap = () => {
       return;
     }
 
-    const url = `/api/openrouteservice/v2/directions/driving-car?start=${selectedStart[1]},${selectedStart[0]}&end=${selectedEnd[1]},${selectedEnd[0]}`;
+    // Use the direct OpenRouteService API URL (same as original working code)
+    const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjExYWI5YjU0ODgwNzQ4YzY4OTI3YjUyYmFhOTRiNTBhIiwiaCI6Im11cm11cjY0In0=';
+    const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${API_KEY}&start=${selectedStart[1]},${selectedStart[0]}&end=${selectedEnd[1]},${selectedEnd[0]}`;
 
     try {
       console.log('Calling ORS API:', url);
-      const res = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${API_CONFIG.ROUTE_SERVICE_API_KEY}`,
-        },
-      });
+      const res = await axios.get(url);
 
       const coords = res.data.features[0].geometry.coordinates.map((c) => ({
         lat: c[1],
@@ -142,11 +141,52 @@ const VehicleMap = () => {
 
       toast.success(`Route generated and downloaded for ${vehicleId}`);
     } catch (error) {
-      console.error('Error generating route:', error);
-      if (error.response) {
-        console.error('API Response:', error.response.data);
+      console.error('Error generating route with real API:', error);
+      console.log('Falling back to demo route generation...');
+      
+      // Generate demo route between two points
+      const generateDemoRoute = (start, end) => {
+        const route = [];
+        const steps = 50; // Number of waypoints
+        
+        for (let i = 0; i <= steps; i++) {
+          const progress = i / steps;
+          const lat = start[0] + (end[0] - start[0]) * progress;
+          const lng = start[1] + (end[1] - start[1]) * progress;
+          route.push({ lat, lng });
+        }
+        return route;
+      };
+
+      try {
+        const demoCoords = generateDemoRoute(selectedStart, selectedEnd);
+        
+        const newRoutes = { ...vehicleRoutes, [vehicleId]: demoCoords };
+        setVehicleRoutes(newRoutes);
+        setGeneratedRoute(demoCoords);
+
+        setVehiclePositions(prev => ({ ...prev, [vehicleId]: [demoCoords[0].lat, demoCoords[0].lng] }));
+        setCurrentIndices(prev => ({ ...prev, [vehicleId]: 0 }));
+
+        const jsonStr = JSON.stringify({ [vehicleId]: demoCoords }, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const urlBlob = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = urlBlob;
+        a.download = `route_${vehicleId}.json`;
+        a.click();
+        URL.revokeObjectURL(urlBlob);
+
+        setSelectedStart(null);
+        setSelectedEnd(null);
+        setIsSelectingRoute(false);
+
+        toast.success(`Demo route generated and downloaded for ${vehicleId}`);
+        toast.info('Note: Using demo route. For real routing, the API key may be invalid.');
+      } catch (demoError) {
+        console.error('Error generating demo route:', demoError);
+        toast.error('Failed to generate route. Please try again.');
       }
-      toast.error('Failed to generate route');
     }
   };
 
@@ -236,17 +276,30 @@ const VehicleMap = () => {
         <MapCenter center={vehicleId ? vehiclePositions[vehicleId] : null} />
         <MapClickHandler onMapClick={handleMapClick} />
 
-        {Object.entries(vehicleRoutes).map(([id, route]) => {
-          if (isSelectingRoute && id === vehicleId) return null;
-          return (
+        {vehicleId ? (
+          // Show only selected vehicle's route when vehicleId is provided
+          vehicleRoutes[vehicleId] && !isSelectingRoute && (
             <Polyline
-              key={id}
-              positions={route.map(p => [p.lat, p.lng])}
-              color={id === vehicleId ? 'red' : 'blue'}
-              weight={id === vehicleId ? 4 : 2}
+              key={vehicleId}
+              positions={vehicleRoutes[vehicleId].map(p => [p.lat, p.lng])}
+              color="red"
+              weight={4}
             />
-          );
-        })}
+          )
+        ) : (
+          // Show all routes when no specific vehicle is selected
+          Object.entries(vehicleRoutes).map(([id, route]) => {
+            if (isSelectingRoute && id === vehicleId) return null;
+            return (
+              <Polyline
+                key={id}
+                positions={route.map(p => [p.lat, p.lng])}
+                color="blue"
+                weight={2}
+              />
+            );
+          })
+        )}
 
         {generatedRoute && (
           <Polyline
@@ -271,6 +324,9 @@ const VehicleMap = () => {
         )}
 
         {vehicles.map(vehicle => {
+          // Only show selected vehicle when vehicleId is provided
+          if (vehicleId && vehicle.id !== vehicleId) return null;
+          
           const position = vehiclePositions[vehicle.id];
           const status = vehicleStatuses[vehicle.id] || 'Not Started';
           if (!position) return null;
@@ -297,18 +353,35 @@ const VehicleMap = () => {
           );
         })}
 
-        {Object.values(tolls).flat().map(toll => (
-          <Marker key={toll.id} position={[toll.latitude, toll.longitude]} icon={tollIcon}>
-            <Popup>
-              <div>
-                <h4>{toll.name}</h4>
-                <p><strong>Radius:</strong> {toll.radius} meters</p>
-                <p><strong>Coordinates:</strong> {toll.latitude.toFixed(4)}, {toll.longitude.toFixed(4)}</p>
-              </div>
-            </Popup>
-            <Tooltip>{toll.name} (Toll Plaza)</Tooltip>
-          </Marker>
-        ))}
+        {vehicleId ? (
+          // Show tolls only for selected vehicle
+          (tolls[vehicleId] || []).map(toll => (
+            <Marker key={toll.id} position={[toll.latitude, toll.longitude]} icon={tollIcon}>
+              <Popup>
+                <div>
+                  <h4>{toll.name}</h4>
+                  <p><strong>Radius:</strong> {toll.radius} meters</p>
+                  <p><strong>Coordinates:</strong> {toll.latitude.toFixed(4)}, {toll.longitude.toFixed(4)}</p>
+                </div>
+              </Popup>
+              <Tooltip>{toll.name} (Toll Plaza)</Tooltip>
+            </Marker>
+          ))
+        ) : (
+          // Show all tolls when no specific vehicle is selected
+          Object.values(tolls).flat().map(toll => (
+            <Marker key={toll.id} position={[toll.latitude, toll.longitude]} icon={tollIcon}>
+              <Popup>
+                <div>
+                  <h4>{toll.name}</h4>
+                  <p><strong>Radius:</strong> {toll.radius} meters</p>
+                  <p><strong>Coordinates:</strong> {toll.latitude.toFixed(4)}, {toll.longitude.toFixed(4)}</p>
+                </div>
+              </Popup>
+              <Tooltip>{toll.name} (Toll Plaza)</Tooltip>
+            </Marker>
+          ))
+        )}
       </MapContainer>
     </div>
   );
