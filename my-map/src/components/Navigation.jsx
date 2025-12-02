@@ -22,6 +22,12 @@ const Navigation = () => {
             Truck List
           </Link>
           <Link
+            to="/vehicles"
+            className={`nav-link ${location.pathname === '/vehicles' ? 'active' : ''}`}
+          >
+            Vehicle Details
+          </Link>
+          <Link
             to="/map"
             className={`nav-link ${location.pathname.startsWith('/map') ? 'active' : ''}`}
           >

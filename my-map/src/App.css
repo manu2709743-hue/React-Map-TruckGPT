@@ -109,10 +109,51 @@ body {
 }
 
 /* ================================
-    Truck List Styles
-    ================================ */
+     Truck List Styles
+     ================================ */
 .truck-list-container {
   padding: 20px;
+}
+
+/* ================================
+     Vehicle Details Styles
+     ================================ */
+.vehicle-details-container {
+  padding: 20px;
+}
+
+.vehicle-table-wrapper {
+  overflow-x: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: white;
+}
+
+.vehicle-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vehicle-table th,
+.vehicle-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.vehicle-table th {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vehicle-table tbody tr:hover {
+  background-color: #f8f9ff;
+  transform: scale(1.005);
+  transition: all 0.2s ease;
 }
 
 .list-controls {
@@ -159,7 +200,7 @@ body {
 }
 
 .truck-table-wrapper {
-  overflow-x: auto;
+  overflow-x: hidden;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   background: white;
@@ -442,7 +483,9 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
   .truck-table th,
-  .truck-table td {
+  .truck-table td,
+  .vehicle-table th,
+  .vehicle-table td {
     padding: 6px 8px;
     font-size: 0.8rem;
   }
@@ -478,7 +521,8 @@ body {
     min-width: 120px;
   }
 
-  .truck-list-container {
+  .truck-list-container,
+  .vehicle-details-container {
     padding: 10px;
   }
 

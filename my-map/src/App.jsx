@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
 // Import components
-import { Navigation, TruckList, TruckMap } from './components';
+import { Navigation, TruckList, TruckMap, VehicleDetails } from './components';
 
 // Import context
 import { TruckProvider } from './contexts/TruckContext';
@@ -28,6 +28,7 @@ function App() {
         <div className="app">
           <Routes>
             <Route path="/trucks" element={<TruckList />} />
+            <Route path="/vehicles" element={<VehicleDetails />} />
             <Route path="/map" element={<TruckMap />} />
             <Route path="/map/:truckId" element={<TruckMap />} />
             <Route path="/" element={<TruckList />} />
