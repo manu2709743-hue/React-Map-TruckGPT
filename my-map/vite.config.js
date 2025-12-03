@@ -11,10 +11,17 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/openrouteservice/, ''),
       },
+      '/api/routemappers': {
+        target: 'http://krowd.khichad.com/o/c/routemappers/',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/routemappers/, ''),
+        followRedirects: true,
+      },
       '/api/backend': {
         target: 'http://krowd.khichad.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/backend/, ''),
+        followRedirects: true,
       },
     },
   },

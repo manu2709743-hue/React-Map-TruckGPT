@@ -11,11 +11,12 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 import L from 'leaflet';
-import { toast } from 'react-toastify';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { Button } from './index';
 import { useVehicleContext } from '../contexts/VehicleContext';
 import { API_CONFIG, MAP_CONFIG, DISTANCE_CONFIG } from '../constants';
+import { saveRoute, updateRoute, parseRouteFromBackend } from '../services';
 import '../styles/vehicle-map.css';
 import deliveryTruck from '../assets/delivery-truck.png';
 
@@ -81,6 +82,7 @@ const VehicleMap = () => {
   const [selectedStart, setSelectedStart] = useState(null);
   const [selectedEnd, setSelectedEnd] = useState(null);
   const [generatedRoute, setGeneratedRoute] = useState(null);
+  const [vehicleRouteId, setVehicleRouteId] = useState(null);
 
   const loading = Object.keys(vehicleRoutes).length === 0;
 
@@ -104,51 +106,32 @@ const VehicleMap = () => {
       return;
     }
 
-    // Use the direct OpenRouteService API URL (same as original working code)
-    const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjExYWI5YjU0ODgwNzQ4YzY4OTI3YjUyYmFhOTRiNTBhIiwiaCI6Im11cm11cjY0In0=';
-    const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${API_KEY}&start=${selectedStart[1]},${selectedStart[0]}&end=${selectedEnd[1]},${selectedEnd[0]}`;
+    // Generate route between two points using OSRM API
+    const generateRoute = async (start, end) => {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+        const response = await axios.get(url);
 
-    try {
-      console.log('Calling ORS API:', url);
-      const res = await axios.get(url);
+        const coordinates = response.data.routes[0].geometry.coordinates;
+        // Convert from [lng, lat] to {lat, lng}
+        let route = coordinates.map(coord => ({
+          lat: coord[1],
+          lng: coord[0]
+        }));
 
-      const coords = res.data.features[0].geometry.coordinates.map((c) => ({
-        lat: c[1],
-        lng: c[0],
-      }));
+        // Reduce number of waypoints to avoid large payloads (keep every 5th point)
+        if (route.length > 100) {
+          route = route.filter((_, index) => index % 5 === 0);
+        }
 
-      console.log(`Generated real ORS route with ${coords.length} waypoints`);
-
-      const newRoutes = { ...vehicleRoutes, [vehicleId]: coords };
-      setVehicleRoutes(newRoutes);
-      setGeneratedRoute(coords);
-
-      setVehiclePositions(prev => ({ ...prev, [vehicleId]: [coords[0].lat, coords[0].lng] }));
-      setCurrentIndices(prev => ({ ...prev, [vehicleId]: 0 }));
-
-      const jsonStr = JSON.stringify({ [vehicleId]: coords }, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const urlBlob = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = urlBlob;
-      a.download = `route_${vehicleId}.json`;
-      a.click();
-      URL.revokeObjectURL(urlBlob);
-
-      setSelectedStart(null);
-      setSelectedEnd(null);
-      setIsSelectingRoute(false);
-
-      toast.success(`Route generated and downloaded for ${vehicleId}`);
-    } catch (error) {
-      console.error('Error generating route with real API:', error);
-      console.log('Falling back to demo route generation...');
-      
-      // Generate demo route between two points
-      const generateDemoRoute = (start, end) => {
+        console.log(`Generated route with ${route.length} waypoints using OSRM`);
+        return route;
+      } catch (error) {
+        console.error('Error fetching route from OSRM:', error);
+        toast.error('Failed to generate route. Using straight line as fallback.');
+        // Fallback to straight line
         const route = [];
-        const steps = 50; // Number of waypoints
-        
+        const steps = 50;
         for (let i = 0; i <= steps; i++) {
           const progress = i / steps;
           const lat = start[0] + (end[0] - start[0]) * progress;
@@ -156,37 +139,49 @@ const VehicleMap = () => {
           route.push({ lat, lng });
         }
         return route;
-      };
-
-      try {
-        const demoCoords = generateDemoRoute(selectedStart, selectedEnd);
-        
-        const newRoutes = { ...vehicleRoutes, [vehicleId]: demoCoords };
-        setVehicleRoutes(newRoutes);
-        setGeneratedRoute(demoCoords);
-
-        setVehiclePositions(prev => ({ ...prev, [vehicleId]: [demoCoords[0].lat, demoCoords[0].lng] }));
-        setCurrentIndices(prev => ({ ...prev, [vehicleId]: 0 }));
-
-        const jsonStr = JSON.stringify({ [vehicleId]: demoCoords }, null, 2);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const urlBlob = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = urlBlob;
-        a.download = `route_${vehicleId}.json`;
-        a.click();
-        URL.revokeObjectURL(urlBlob);
-
-        setSelectedStart(null);
-        setSelectedEnd(null);
-        setIsSelectingRoute(false);
-
-        toast.success(`Demo route generated and downloaded for ${vehicleId}`);
-        toast.info('Note: Using demo route. For real routing, the API key may be invalid.');
-      } catch (demoError) {
-        console.error('Error generating demo route:', demoError);
-        toast.error('Failed to generate route. Please try again.');
       }
+    };
+
+    const routeCoords = await generateRoute(selectedStart, selectedEnd);
+    console.log(`Generated route with ${routeCoords.length} waypoints`);
+
+    // Save or update route on backend
+    try {
+      console.log('Saving/Updating route on backend...');
+      
+      let backendResponse;
+      
+      if (vehicleRouteId) {
+        // If route already exists, update it (PATCH)
+        console.log(`Updating existing route ID: ${vehicleRouteId}`);
+        backendResponse = await updateRoute(vehicleRouteId, routeCoords, vehicleId);
+      } else {
+        // If route doesn't exist, create new one (POST)
+        console.log(`Creating new route for: ${vehicleId}`);
+        backendResponse = await saveRoute(routeCoords, vehicleId);
+        const routeId = backendResponse.id;
+        setVehicleRouteId(routeId);
+        console.log(`Route created with ID: ${routeId}`);
+      }
+      
+      console.log('Backend response:', backendResponse);
+
+      // Update UI with the route
+      const newRoutes = { ...vehicleRoutes, [vehicleId]: routeCoords };
+      setVehicleRoutes(newRoutes);
+      setGeneratedRoute(routeCoords);
+
+      setVehiclePositions(prev => ({ ...prev, [vehicleId]: [routeCoords[0].lat, routeCoords[0].lng] }));
+      setCurrentIndices(prev => ({ ...prev, [vehicleId]: 0 }));
+
+      setSelectedStart(null);
+      setSelectedEnd(null);
+      setIsSelectingRoute(false);
+
+      toast.success(`Route saved for ${vehicleId}`);
+    } catch (error) {
+      console.error('Error saving route on backend:', error);
+      toast.error('Failed to save route. Please try again.');
     }
   };
 
