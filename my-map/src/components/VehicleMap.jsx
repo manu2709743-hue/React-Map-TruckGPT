@@ -16,7 +16,7 @@ import { toast } from 'react-toastify';
 import { Button } from './index';
 import { useVehicleContext } from '../contexts/VehicleContext';
 import { API_CONFIG, MAP_CONFIG, DISTANCE_CONFIG } from '../constants';
-import { saveRoute, updateRoute, parseRouteFromBackend } from '../services';
+import { saveRoute, updateRoute, parseRouteFromBackend, fetchRouteByVehicleId } from '../services';
 import '../styles/vehicle-map.css';
 import deliveryTruck from '../assets/delivery-truck.png';
 
@@ -76,6 +76,7 @@ const VehicleMap = () => {
     startMovement,
     stopMovement,
     tolls,
+    isLoading,
   } = useVehicleContext();
 
   const [isSelectingRoute, setIsSelectingRoute] = useState(false);
@@ -84,7 +85,32 @@ const VehicleMap = () => {
   const [generatedRoute, setGeneratedRoute] = useState(null);
   const [vehicleRouteId, setVehicleRouteId] = useState(null);
 
-  const loading = Object.keys(vehicleRoutes).length === 0;
+  // Fetch latest route for specific vehicle when vehicleId changes
+  useEffect(() => {
+    const fetchVehicleRoute = async () => {
+      if (vehicleId) {
+        try {
+          const routeResponse = await fetchRouteByVehicleId(vehicleId);
+          const routeData = routeResponse.items || [];
+          if (routeData && routeData.length > 0) {
+            // Get the latest route (assuming sorted by id ascending, so last is latest)
+            const latestRoute = routeData[routeData.length - 1];
+            const parsedRoute = parseRouteFromBackend(latestRoute.route);
+            setVehicleRoutes(prev => ({ ...prev, [vehicleId]: parsedRoute }));
+            // Update position if route exists
+            if (parsedRoute && parsedRoute.length > 0) {
+              setVehiclePositions(prev => ({ ...prev, [vehicleId]: [parsedRoute[0].lat, parsedRoute[0].lng] }));
+              setCurrentIndices(prev => ({ ...prev, [vehicleId]: 0 }));
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching route for vehicle:', vehicleId, error);
+        }
+      }
+    };
+
+    fetchVehicleRoute();
+  }, [vehicleId, setVehicleRoutes, setVehiclePositions, setCurrentIndices]);
 
   const handleMapClick = (e) => {
     if (!isSelectingRoute || !vehicleId) return;
@@ -200,7 +226,7 @@ const VehicleMap = () => {
     setGeneratedRoute(null);
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div className="loading">Loading map data...</div>;
   }
 

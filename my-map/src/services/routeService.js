@@ -93,6 +93,27 @@ export const fetchRouteByVehicleId = async (vehicleId) => {
 };
 
 /**
+ * Fetch all routes from backend (GET)
+ * @returns {Promise} All route data
+ */
+export const fetchAllRoutes = async () => {
+  try {
+    const url = `${ROUTE_MAPPER_API}`;
+    console.log('Fetching all routes from backend');
+
+    const response = await axios.get(url, {
+      headers: getAuthHeader(),
+    });
+
+    console.log('All routes fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all routes:', error);
+    throw error;
+  }
+};
+
+/**
  * Update route (PUT/PATCH)
  * @param {String} routeId - Route ID to update
  * @param {Array} route - New route array
@@ -161,6 +182,7 @@ export default {
   saveRoute,
   fetchRoute,
   fetchRouteByVehicleId,
+  fetchAllRoutes,
   updateRoute,
   parseRouteFromBackend,
 };

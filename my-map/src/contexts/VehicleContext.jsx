@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { distanceInMeters } from '../utils/distance';
+import { fetchAllRoutes, parseRouteFromBackend } from '../services/routeService';
 
 // Create context
 const VehicleContext = createContext();
@@ -14,6 +15,7 @@ export const VehicleProvider = ({ children }) => {
   const [currentIndices, setCurrentIndices] = useState({});
   const [isMoving, setIsMoving] = useState(false);
   const [tolls, setTolls] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef(null);
   const crossedTollsRef = useRef(new Set());
 
@@ -21,15 +23,37 @@ export const VehicleProvider = ({ children }) => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [vehiclesRes, routesRes, tollsRes] = await Promise.all([
+        const [vehiclesRes, tollsRes] = await Promise.all([
           fetch('/data/vehicles.json'),
-          fetch('/data/vehicleRoutes.json'),
           fetch('/data/tolls.json'),
         ]);
 
         const vehiclesData = await vehiclesRes.json();
-        const routesData = await routesRes.json();
         const tollsData = await tollsRes.json();
+
+        // Fetch routes from backend
+        let routesData = {};
+        try {
+          const backendResponse = await fetchAllRoutes();
+          const backendRoutes = backendResponse.items || [];
+          // Process backend routes - get latest route for each vehicle
+          const latestRoutes = {};
+          backendRoutes.forEach(routeItem => {
+            if (routeItem.vId && routeItem.route) {
+              // If no route for this vehicle yet, or this one is newer (assuming higher ID means newer)
+              if (!latestRoutes[routeItem.vId] || routeItem.id > latestRoutes[routeItem.vId].id) {
+                latestRoutes[routeItem.vId] = routeItem;
+              }
+            }
+          });
+          // Parse routes for latest entries
+          Object.values(latestRoutes).forEach(routeItem => {
+            routesData[routeItem.vId] = parseRouteFromBackend(routeItem.route);
+          });
+        } catch (error) {
+          console.error('Error fetching routes from backend:', error);
+          // Fallback to empty routes if backend fails
+        }
 
         setVehicles(vehiclesData);
         setVehicleRoutes(routesData);
@@ -51,8 +75,10 @@ export const VehicleProvider = ({ children }) => {
         setVehiclePositions(initialPositions);
         setVehicleStatuses(initialStatuses);
         setCurrentIndices(initialIndices);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error loading data:', error);
+        setIsLoading(false);
       }
     };
 
@@ -220,6 +246,7 @@ export const VehicleProvider = ({ children }) => {
     stopMovement,
     tolls,
     setTolls,
+    isLoading,
   };
 
   return (
