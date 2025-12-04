@@ -26,7 +26,7 @@ const TripDetails = () => {
   const [startPoint, setStartPoint] = useState({ lat: '', long: '' });
   const [endPoint, setEndPoint] = useState({ lat: '', long: '' });
   const navigate = useNavigate();
-  const { vehicles } = useVehicleContext(); // Get all available vehicles
+  const { vehicles, isLoading: vehiclesLoading } = useVehicleContext(); // Get all available vehicles
 
   // Load trip details from backend
   useEffect(() => {
@@ -206,7 +206,7 @@ const TripDetails = () => {
     toast.info(`Starting vehicle ${trip.vehicleId}`);
   };
 
-  if (loading) {
+  if (loading || vehiclesLoading) {
     return <div className="loading">Loading trip details...</div>;
   }
 
@@ -224,97 +224,6 @@ const TripDetails = () => {
 
   return (
     <div className="vehicle-list-container">
-      <div className="list-controls">
-        <h2>Trip Details</h2>
-        <Button 
-          variant="primary" 
-          size="sm"
-          onClick={handleRefresh}
-          className="refresh-btn"
-        >
-          🔄 Refresh
-        </Button>
-        
-        {/* Trip Creation Form */}
-        <div className="trip-creation-form">
-          <h3>Create New Trip</h3>
-          <div className="form-row">
-            <select
-              value={selectedVehicle?.vehicleId || ''}
-              onChange={(e) => {
-                const vehicle = tableData.find(v => v.vehicleId === e.target.value);
-                setSelectedVehicle(vehicle);
-              }}
-              className="form-input"
-            >
-              <option value="">Select Vehicle</option>
-              {tableData.map((vehicle) => (
-                <option key={vehicle.vehicleId} value={vehicle.vehicleId}>
-                  {vehicle.vehicleNumber}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label>Start Latitude:</label>
-              <input
-                type="number"
-                step="any"
-                value={startPoint.lat}
-                onChange={(e) => setStartPoint({ ...startPoint, lat: e.target.value })}
-                placeholder="28.829556"
-                className="form-input"
-              />
-            </div>
-            <div className="form-group">
-              <label>Start Longitude:</label>
-              <input
-                type="number"
-                step="any"
-                value={startPoint.long}
-                onChange={(e) => setStartPoint({ ...startPoint, long: e.target.value })}
-                placeholder="77.042093"
-                className="form-input"
-              />
-            </div>
-          </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label>End Latitude:</label>
-              <input
-                type="number"
-                step="any"
-                value={endPoint.lat}
-                onChange={(e) => setEndPoint({ ...endPoint, lat: e.target.value })}
-                placeholder="28.829556"
-                className="form-input"
-              />
-            </div>
-            <div className="form-group">
-              <label>End Longitude:</label>
-              <input
-                type="number"
-                step="any"
-                value={endPoint.long}
-                onChange={(e) => setEndPoint({ ...endPoint, long: e.target.value })}
-                placeholder="77.042093"
-                className="form-input"
-              />
-            </div>
-          </div>
-          
-          <Button
-            variant="success"
-            onClick={handleCreateTrip}
-            disabled={!selectedVehicle || !startPoint.lat || !startPoint.long || !endPoint.lat || !endPoint.long}
-          >
-            Create Trip
-          </Button>
-        </div>
-      </div>
 
       <Table
         columns={columns}
