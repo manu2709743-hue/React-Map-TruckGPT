@@ -112,9 +112,6 @@ const VehicleList = () => {
   return (
     <div className="vehicle-list-container">
       <div className="list-controls">
-        <Button variant="secondary" onClick={handleLoadRoutes}>
-          Load Routes
-        </Button>
         <Button 
           variant="success" 
           onClick={isMoving ? handleStopAll : handleStartAll}

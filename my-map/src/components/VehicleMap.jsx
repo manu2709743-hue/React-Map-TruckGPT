@@ -16,7 +16,7 @@ import { toast } from 'react-toastify';
 import { Button } from './index';
 import { useVehicleContext } from '../contexts/VehicleContext';
 import { API_CONFIG, MAP_CONFIG, DISTANCE_CONFIG } from '../constants';
-import { saveRoute, updateRoute, parseRouteFromBackend, fetchRouteByVehicleId } from '../services';
+import { saveRoute, updateRoute, parseRouteFromBackend, fetchRouteByVehicleId, createTripDetails, formatTripDataForBackend } from '../services';
 import '../styles/vehicle-map.css';
 import deliveryTruck from '../assets/delivery-truck.png';
 
@@ -192,6 +192,36 @@ const VehicleMap = () => {
       
       console.log('Backend response:', backendResponse);
 
+      // Also update TripDetails table with the latest start/end points
+      try {
+        console.log('Updating TripDetails with latest route points...');
+        
+        // Get vehicle data from context or create default vehicle object
+        // Note: Backend returns vId and vNumber fields
+        const vehicle = vehicles.find(v => v.vId === vehicleId || v.id === vehicleId) || { vId: vehicleId, vNumber: `Vehicle ${vehicleId}` };
+        
+        // Format the trip data for TripDetails API
+        const tripData = formatTripDataForBackend(
+          [{ lat: selectedStart[0], long: selectedStart[1] }],
+          [{ lat: selectedEnd[0], long: selectedEnd[1] }],
+          vehicle.vId || vehicle.id, // Use vId if available, fallback to id
+          vehicle.vNumber || vehicle.name, // Use vNumber if available, fallback to name
+          { key: 'notStarted', name: 'Not Started' }
+        );
+        
+        console.log('Saving trip data to TripDetails API:', tripData);
+        
+        // Create new trip record in TripDetails
+        const tripResponse = await createTripDetails(tripData);
+        console.log('TripDetails updated successfully:', tripResponse);
+        
+        toast.success(`Route saved and trip details updated for ${vehicleId}`);
+      } catch (tripError) {
+        console.error('Error updating TripDetails:', tripError);
+        // Don't show error to user since route was saved successfully
+        console.log('Route saved successfully, but TripDetails update failed');
+      }
+
       // Update UI with the route
       const newRoutes = { ...vehicleRoutes, [vehicleId]: routeCoords };
       setVehicleRoutes(newRoutes);
@@ -345,22 +375,26 @@ const VehicleMap = () => {
         )}
 
         {vehicles.map(vehicle => {
-          // Only show selected vehicle when vehicleId is provided
-          if (vehicleId && vehicle.id !== vehicleId) return null;
+          // Use vId if available, fallback to id
+          const vehicleKey = vehicle.vId || vehicle.id;
+          const vehicleName = vehicle.vNumber || vehicle.name;
           
-          const position = vehiclePositions[vehicle.id];
-          const status = vehicleStatuses[vehicle.id] || 'Not Started';
+          // Only show selected vehicle when vehicleId is provided
+          if (vehicleId && vehicleKey !== vehicleId) return null;
+          
+          const position = vehiclePositions[vehicleKey];
+          const status = vehicleStatuses[vehicleKey] || 'Not Started';
           if (!position) return null;
 
           return (
             <Marker
-              key={vehicle.id}
+              key={vehicleKey}
               position={position}
-              icon={vehicle.id === vehicleId ? highlightedVehicleIcon : vehicleIcon}
+              icon={vehicleKey === vehicleId ? highlightedVehicleIcon : vehicleIcon}
             >
               <Popup>
                 <div>
-                  <h4>{vehicle.name}</h4>
+                  <h4>{vehicleName}</h4>
                   <p><strong>Driver:</strong> {vehicle.driver}</p>
                   <p><strong>Route:</strong> {vehicle.from} → {vehicle.to}</p>
                   <p><strong>Status:</strong> {status}</p>
@@ -368,7 +402,7 @@ const VehicleMap = () => {
                 </div>
               </Popup>
               <Tooltip permanent={false}>
-                {vehicle.name} - {vehicle.driver} ({status})
+                {vehicleName} - {vehicle.driver} ({status})
               </Tooltip>
             </Marker>
           );

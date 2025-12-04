@@ -10,6 +10,7 @@ export { default as Navigation } from './Navigation';
 export { default as VehicleList } from './VehicleList';
 export { default as VehicleMap } from './VehicleMap';
 export { default as VehicleDetails } from './VehicleDetails';
+export { default as TripDetails } from './TripDetails';
 export { default as DriverDetailsModal } from './DriverDetailsModal';
 
 // Reusable Components

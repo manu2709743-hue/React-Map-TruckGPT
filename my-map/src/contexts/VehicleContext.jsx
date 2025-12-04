@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { toast } from 'react-toastify';
 import { distanceInMeters } from '../utils/distance';
 import { fetchAllRoutes, parseRouteFromBackend } from '../services/routeService';
+import { fetchAllVehicles } from '../services/vehicleService';
 
 // Create context
 const VehicleContext = createContext();
@@ -24,11 +25,12 @@ export const VehicleProvider = ({ children }) => {
     const loadData = async () => {
       try {
         const [vehiclesRes, tollsRes] = await Promise.all([
-          fetch('/data/vehicles.json'),
+          fetchAllVehicles(),
           fetch('/data/tolls.json'),
         ]);
 
-        const vehiclesData = await vehiclesRes.json();
+        // vehiclesRes is already parsed JSON from backend
+        const vehiclesData = vehiclesRes;
         const tollsData = await tollsRes.json();
 
         // Fetch routes from backend
@@ -60,15 +62,17 @@ export const VehicleProvider = ({ children }) => {
         setTolls(tollsData);
 
         // Initialize positions, statuses, and indices
+        // Use vId if available, fallback to id
         const initialPositions = {};
         const initialStatuses = {};
         const initialIndices = {};
         vehiclesData.forEach(vehicle => {
-          const route = routesData[vehicle.id];
+          const vehicleKey = vehicle.vId || vehicle.id;
+          const route = routesData[vehicleKey];
           if (route && route.length > 0) {
-            initialPositions[vehicle.id] = [route[0].lat, route[0].lng];
-            initialStatuses[vehicle.id] = 'Not Started';
-            initialIndices[vehicle.id] = 0;
+            initialPositions[vehicleKey] = [route[0].lat, route[0].lng];
+            initialStatuses[vehicleKey] = 'Not Started';
+            initialIndices[vehicleKey] = 0;
           }
         });
 
@@ -101,15 +105,16 @@ export const VehicleProvider = ({ children }) => {
           const newPositions = { ...prevPositions };
 
           vehicles.forEach(vehicle => {
-            const route = vehicleRoutes[vehicle.id];
+            const vehicleKey = vehicle.vId || vehicle.id;
+            const route = vehicleRoutes[vehicleKey];
             if (!route || route.length === 0) return;
 
-            let currentIndex = newIndices[vehicle.id] || 0;
+            let currentIndex = newIndices[vehicleKey] || 0;
 
             // Check if vehicle has reached the end
             if (currentIndex >= route.length - 1) {
               // Stay at the last position
-              newPositions[vehicle.id] = [route[route.length - 1].lat, route[route.length - 1].lng];
+              newPositions[vehicleKey] = [route[route.length - 1].lat, route[route.length - 1].lng];
               return;
             }
 
@@ -117,8 +122,8 @@ export const VehicleProvider = ({ children }) => {
             currentIndex++;
             const point = route[currentIndex];
             const position = [point.lat, point.lng];
-            newPositions[vehicle.id] = position;
-            newIndices[vehicle.id] = currentIndex;
+            newPositions[vehicleKey] = position;
+            newIndices[vehicleKey] = currentIndex;
 
             // Check if not at end yet
             if (currentIndex < route.length - 1) {
@@ -126,14 +131,14 @@ export const VehicleProvider = ({ children }) => {
             }
 
             // Check for toll crossings
-            const vehicleTolls = tolls[vehicle.id] || [];
+            const vehicleTolls = tolls[vehicleKey] || [];
             vehicleTolls.forEach(toll => {
-              const tollKey = `${vehicle.id}-${toll.id}`;
+              const tollKey = `${vehicleKey}-${toll.id}`;
               if (!crossedTollsRef.current.has(tollKey)) {
                 const distance = distanceInMeters(position, [toll.latitude, toll.longitude]);
                 if (distance <= 30) {
                   crossedTollsRef.current.add(tollKey);
-                  toast.success(`${vehicle.name} crossed ${toll.name}`);
+                  toast.success(`${vehicle.vNumber || vehicle.name} crossed ${toll.name}`);
                 }
               }
             });
@@ -185,13 +190,15 @@ export const VehicleProvider = ({ children }) => {
     let hasChanges = false;
 
     vehicles.forEach(vehicle => {
-      const position = vehiclePositions[vehicle.id];
-      const route = vehicleRoutes[vehicle.id];
+      const vehicleKey = vehicle.vId || vehicle.id;
+      const vehicleName = vehicle.vNumber || vehicle.name;
+      const position = vehiclePositions[vehicleKey];
+      const route = vehicleRoutes[vehicleKey];
       if (!position || !route || route.length === 0) return;
 
       const startPoint = route[0];
       const endPoint = route[route.length - 1];
-      const currentStatus = vehicleStatuses[vehicle.id] || 'Not Started';
+      const currentStatus = vehicleStatuses[vehicleKey] || 'Not Started';
 
       // Check if at end (within 10 meters)
       const distToEnd = Math.sqrt(
@@ -216,12 +223,12 @@ export const VehicleProvider = ({ children }) => {
       if (newStatus !== currentStatus) {
         hasChanges = true;
         if (newStatus === 'On Route') {
-          toast.info(`${vehicle.name} started for delivery`);
+          toast.info(`${vehicleName} started for delivery`);
         } else if (newStatus === 'Delivered') {
-          toast.success(`${vehicle.name} delivered`);
+          toast.success(`${vehicleName} delivered`);
         }
       }
-      newStatuses[vehicle.id] = newStatus;
+      newStatuses[vehicleKey] = newStatus;
     });
 
     if (hasChanges) {

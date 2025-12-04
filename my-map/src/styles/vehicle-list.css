@@ -8,10 +8,33 @@
 
 .list-controls {
   display: flex;
+  flex-direction: column;
   gap: 15px;
   margin-bottom: 20px;
-  justify-content: center;
+  align-items: center;
+}
+
+.refresh-controls {
+  display: flex;
+  gap: 10px;
   flex-wrap: wrap;
+  justify-content: center;
+}
+
+.refresh-btn,
+.force-refresh-btn {
+  font-size: 0.9rem;
+  padding: 8px 12px;
+}
+
+.force-refresh-btn {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.force-refresh-btn:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
 }
 
 /* Path Generator Styles */
@@ -84,6 +107,19 @@
   gap: 8px;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* Coordinates display */
+.coordinates {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #495057;
+}
+
+/* No data state */
+.no-data {
+  color: #999;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {

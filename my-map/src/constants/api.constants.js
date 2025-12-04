@@ -14,8 +14,10 @@ export const API_CONFIG = {
 };
 
 export const API_ENDPOINTS = {
-  VEHICLE_DETAILS: '/api/backend/o/c/vehicledetails',
-  DRIVER_DETAILS_BASE: '/api/backend/o/c/driverdetails',
+  VEHICLE_DETAILS: '/o/c/vehicledetails',
+  DRIVER_DETAILS_BASE: '/o/c/driverdetails',
+  TRIP_DETAILS: '/o/c/tripdetailses',
+  ROUTE_MAPPER: '/api/routemappers',
 };
 
 /**

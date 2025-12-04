@@ -15,7 +15,7 @@ import './styles/modal.css';
 import './styles/status-badge.css';
 
 // Import components
-import { Navigation, VehicleList, VehicleMap, VehicleDetails } from './components';
+import { Navigation, TripDetails, VehicleMap, VehicleDetails } from './components';
 
 // Import context
 import { VehicleProvider } from './contexts/VehicleContext';
@@ -34,11 +34,11 @@ function App() {
         <div className="page-container">
           <div className="page-content">
             <Routes>
-              <Route path="/trucks" element={<VehicleList />} />
+              <Route path="/trucks" element={<TripDetails />} />
               <Route path="/vehicles" element={<VehicleDetails />} />
               <Route path="/map" element={<VehicleMap />} />
               <Route path="/map/:vehicleId" element={<VehicleMap />} />
-              <Route path="/" element={<VehicleList />} />
+              <Route path="/" element={<TripDetails />} />
             </Routes>
             <ToastContainer />
           </div>
