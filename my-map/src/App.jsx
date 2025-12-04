@@ -1,41 +1,50 @@
 /**
  * App Component
- * Root component of the Truck Tracking application
+ * Root component of the Vehicle Tracking application
  */
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import './App.css';
+
+// Import global styles
+import './styles/globals.css';
+import './styles/buttons.css';
+import './styles/table.css';
+import './styles/modal.css';
+import './styles/status-badge.css';
 
 // Import components
-import { Navigation, TruckList, TruckMap } from './components';
+import { Navigation, TripDetails, VehicleMap, VehicleDetails } from './components';
 
 // Import context
-import { TruckProvider } from './contexts/TruckContext';
+import { VehicleProvider } from './contexts/VehicleContext';
 
 /**
  * Main application component
- * Sets up routing for truck list and map pages
+ * Sets up routing for vehicle list and map pages
  *
  * @returns {JSX.Element} The main application layout
  */
 function App() {
   return (
-    <TruckProvider>
+    <VehicleProvider>
       <Router>
         <Navigation />
-        <div className="app">
-          <Routes>
-            <Route path="/trucks" element={<TruckList />} />
-            <Route path="/map" element={<TruckMap />} />
-            <Route path="/map/:truckId" element={<TruckMap />} />
-            <Route path="/" element={<TruckList />} />
-          </Routes>
-          <ToastContainer />
+        <div className="page-container">
+          <div className="page-content">
+            <Routes>
+              <Route path="/trucks" element={<TripDetails />} />
+              <Route path="/vehicles" element={<VehicleDetails />} />
+              <Route path="/map" element={<VehicleMap />} />
+              <Route path="/map/:vehicleId" element={<VehicleMap />} />
+              <Route path="/" element={<TripDetails />} />
+            </Routes>
+            <ToastContainer />
+          </div>
         </div>
       </Router>
-    </TruckProvider>
+    </VehicleProvider>
   );
 }
 

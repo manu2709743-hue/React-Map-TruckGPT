@@ -1,0 +1,38 @@
+/* ================================
+    Reusable Status Badge Styles
+    ================================ */
+
+.status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-not-started {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-on-route {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-delivered {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-pending {
+  background-color: #e2e3e5;
+  color: #383d41;
+}

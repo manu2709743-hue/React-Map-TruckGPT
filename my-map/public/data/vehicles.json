@@ -1,15 +1,15 @@
 [
   {
-    "id": "T001",
-    "name": "Truck 1",
+    "id": "V001",
+    "name": "Vehicle 1",
     "driver": "Ramesh",
     "from": "Delhi",
     "to": "Kolkata",
     "status": "On Route"
   },
   {
-    "id": "T002",
-    "name": "Truck 2",
+    "id": "V002",
+    "name": "Vehicle 2",
     "driver": "Suresh",
     "from": "Jaipur",
     "to": "Mumbai",

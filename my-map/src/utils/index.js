@@ -4,5 +4,3 @@
  */
 
 export { distanceInMeters } from './distance';
-export { isCarNearRoute } from './routeHelpers';
-export { downloadJSON } from './fileHelpers';

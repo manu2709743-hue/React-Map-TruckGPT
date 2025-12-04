@@ -1,0 +1,256 @@
+/* ================================
+    Professional Driver Details Modal Styles
+    ================================ */
+
+.driver-details-wrapper {
+  padding: 0;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Two Column Layout */
+.driver-details-content {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 0;
+  min-height: 520px;
+}
+
+/* Left Side - Professional Blue Theme */
+.driver-image-section {
+  background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+  padding: 45px 35px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  position: relative;
+}
+
+.driver-image-container {
+  text-align: center;
+  position: relative;
+}
+
+.driver-image {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  background: #f3f4f6;
+}
+
+.driver-name-display {
+  text-align: center;
+}
+
+.driver-name-display h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+.driver-name-display p {
+  margin: 10px 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+/* Right Side - Clean Professional Layout */
+.driver-info-section {
+  padding: 40px 35px;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.driver-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 0;
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1e40af;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+
+.info-value {
+  font-size: 0.95rem;
+  color: #1f2937;
+  font-weight: 500;
+  padding: 13px 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border-left: 3px solid #1e40af;
+  border: 1px solid #e5e7eb;
+  border-left: 3px solid #1e40af;
+}
+
+.address-text {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.9rem;
+}
+
+.phone-link {
+  color: #1e40af;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.phone-link:hover {
+  color: #1e3a8a;
+  text-decoration: underline;
+}
+
+/* Professional Footer */
+.modal-footer-actions {
+  padding: 20px 35px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  background: #f9fafb;
+}
+
+.modal-footer-actions button {
+  min-width: 100px;
+  padding: 10px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+/* Modal Loading & Error */
+.modal-loading {
+  padding: 70px 40px;
+  text-align: center;
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.modal-error {
+  padding: 70px 40px;
+  text-align: center;
+  font-size: 1rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* Professional Scrollbar */
+.driver-info-section::-webkit-scrollbar {
+  width: 6px;
+}
+
+.driver-info-section::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.driver-info-section::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.driver-info-section::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+  .driver-details-content {
+    grid-template-columns: 1fr;
+  }
+
+  .driver-image-section {
+    min-height: auto;
+    padding: 35px 25px;
+  }
+
+  .driver-image {
+    width: 140px;
+    height: 140px;
+  }
+
+  .driver-info-section {
+    padding: 30px 25px;
+  }
+
+  .driver-info-grid {
+    gap: 20px;
+  }
+
+  .modal-footer-actions {
+    padding: 18px 25px;
+  }
+}
+
+@media (max-width: 600px) {
+  .driver-info-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .driver-image {
+    width: 130px;
+    height: 130px;
+  }
+
+  .driver-name-display h3 {
+    font-size: 1.3rem;
+  }
+
+  .driver-image-section {
+    padding: 30px 20px;
+  }
+
+  .driver-info-section {
+    padding: 25px 20px;
+  }
+
+  .modal-footer-actions {
+    padding: 16px 20px;
+    justify-content: center;
+  }
+
+  .info-value {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .driver-name-display h3 {
+    font-size: 1.2rem;
+  }
+
+  .driver-image {
+    width: 120px;
+    height: 120px;
+  }
+}
